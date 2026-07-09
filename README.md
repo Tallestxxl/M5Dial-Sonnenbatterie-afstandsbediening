@@ -2,7 +2,10 @@
 
 Stand-alone afstandsbediening voor een sonnenBatterie op een M5Stack Dial.
 
-![M5Stack Dial case preview](hardware/case/m5stack-dial-case-preview.webp)
+<p>
+  <img src="docs/images/m5dial-remote-status-photo.jpg" alt="M5Stack Dial Sonnenbatterie afstandsbediening in behuizing" width="45%">
+  <img src="hardware/case/m5stack-dial-case-preview.webp" alt="M5Stack Dial case preview" width="45%">
+</p>
 
 ## Wat Dit Is
 
