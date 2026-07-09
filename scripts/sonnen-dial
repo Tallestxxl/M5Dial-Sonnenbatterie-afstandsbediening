@@ -1,0 +1,129 @@
+#!/bin/sh
+set -eu
+
+ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)"
+ARDUINO_CLI="${ARDUINO_CLI:-/Applications/Arduino IDE.app/Contents/Resources/app/lib/backend/resources/arduino-cli}"
+CONFIG_FILE="$ROOT_DIR/arduino/arduino-cli.yaml"
+SKETCH="$ROOT_DIR/arduino/sketchbook/SonnenDialRemote"
+FQBN="${SONNEN_DIAL_FQBN:-esp32:esp32:m5stack_dial}"
+
+usage() {
+  cat <<EOF
+Usage: scripts/sonnen-dial COMMAND [ARGS]
+
+Commands:
+  check             Show board/library readiness without installing anything
+  ports             List connected boards/serial ports
+  libs              Install required Arduino libraries
+  compile           Compile the SonnenDialRemote sketch
+  upload PORT       Upload to a connected M5 Dial serial port
+  upload-wait PORT [SECONDS]
+                    Wait for PORT to appear, then upload immediately
+  upload-auto [SECONDS]
+                    Wait for any /dev/cu.usbmodem* port, then upload
+
+Environment:
+  ARDUINO_CLI        Override Arduino CLI path
+  SONNEN_DIAL_FQBN   Override board FQBN (default: $FQBN)
+EOF
+}
+
+run_cli() {
+  "$ARDUINO_CLI" "$@"
+}
+
+require_cli() {
+  if [ ! -x "$ARDUINO_CLI" ]; then
+    echo "Arduino CLI not found or not executable: $ARDUINO_CLI" >&2
+    exit 1
+  fi
+}
+
+command="${1:-}"
+if [ -z "$command" ]; then
+  usage
+  exit 2
+fi
+shift || true
+
+require_cli
+
+case "$command" in
+  check)
+    echo "Arduino CLI: $ARDUINO_CLI"
+    echo "Sketch: $SKETCH"
+    echo "FQBN: $FQBN"
+    echo
+    run_cli board listall M5Dial
+    echo
+    if run_cli lib list 2>/dev/null | grep -q '^M5Dial[[:space:]]'; then
+      echo "M5Dial library: installed"
+    else
+      echo "M5Dial library: missing"
+      echo "Install later with: scripts/sonnen-dial libs"
+    fi
+    ;;
+  ports)
+    run_cli board list
+    ;;
+  libs)
+    run_cli lib install --config-file "$CONFIG_FILE" M5Dial
+    ;;
+  compile)
+    run_cli compile --config-file "$CONFIG_FILE" --fqbn "$FQBN" "$SKETCH"
+    ;;
+  upload)
+    port="${1:-}"
+    if [ -z "$port" ]; then
+      echo "Missing PORT. Use scripts/sonnen-dial ports to find it." >&2
+      exit 2
+    fi
+    run_cli upload --config-file "$CONFIG_FILE" --fqbn "$FQBN" -p "$port" "$SKETCH"
+    ;;
+  upload-wait)
+    port="${1:-}"
+    timeout="${2:-60}"
+    if [ -z "$port" ]; then
+      echo "Missing PORT. Use scripts/sonnen-dial ports to find it." >&2
+      exit 2
+    fi
+    deadline=$(( $(date +%s) + timeout ))
+    echo "Waiting up to ${timeout}s for $port ..."
+    while [ ! -e "$port" ]; do
+      if [ "$(date +%s)" -ge "$deadline" ]; then
+        echo "Timed out waiting for $port" >&2
+        exit 1
+      fi
+      sleep 0.2
+    done
+    echo "Found $port, uploading ..."
+    run_cli upload --config-file "$CONFIG_FILE" --fqbn "$FQBN" -p "$port" "$SKETCH"
+    ;;
+  upload-auto)
+    timeout="${1:-90}"
+    deadline=$(( $(date +%s) + timeout ))
+    echo "Waiting up to ${timeout}s for any /dev/cu.usbmodem* port ..."
+    while :; do
+      for port in /dev/cu.usbmodem*; do
+        if [ -e "$port" ]; then
+          echo "Found $port, uploading ..."
+          run_cli upload --config-file "$CONFIG_FILE" --fqbn "$FQBN" -p "$port" "$SKETCH"
+          exit $?
+        fi
+      done
+      if [ "$(date +%s)" -ge "$deadline" ]; then
+        echo "Timed out waiting for /dev/cu.usbmodem*" >&2
+        exit 1
+      fi
+      sleep 0.2
+    done
+    ;;
+  -h|--help|help)
+    usage
+    ;;
+  *)
+    echo "Unknown command: $command" >&2
+    usage >&2
+    exit 2
+    ;;
+esac

@@ -1,0 +1,5 @@
+directories:
+  data: /Users/albertvanegmond/Library/Arduino15
+  downloads: arduino/.downloads
+  user: arduino/sketchbook
+

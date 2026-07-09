@@ -1,0 +1,396 @@
+#!/usr/bin/env python3
+"""Safety-first end-to-end test runner for the Sonnen Dial control path."""
+
+from __future__ import annotations
+
+import argparse
+from dataclasses import dataclass
+import json
+from pathlib import Path
+import re
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+from typing import Any
+
+
+DEFAULT_CONFIG_PATH = Path("arduino/sketchbook/SonnenDialRemote/sonnen_config.h")
+
+FIELD_GROUPS = {
+    "soc": ("USOC", "RSOC", "RelativeStateOfCharge"),
+    "production_w": ("Production_W", "ProductionW", "PV_Production_W"),
+    "consumption_w": ("Consumption_W", "Consumption_Avg", "ConsumptionW"),
+    "grid_w": ("GridFeedIn_W", "GridFeedIn", "GridFeedInW"),
+    "battery_w": ("Pac_total_W", "BatteryPower_W", "Battery_W"),
+    "mode": ("OperatingMode", "EM_OperatingMode", "Mode"),
+}
+
+
+@dataclass
+class Config:
+    values: dict[str, Any]
+
+    def get(self, name: str, default: Any = None) -> Any:
+        return self.values.get(name, default)
+
+    def require(self, name: str) -> Any:
+        if name not in self.values:
+            raise SystemExit(f"Missing {name} in config")
+        return self.values[name]
+
+
+@dataclass
+class Sample:
+    elapsed_s: float
+    soc: int | None
+    mode: str
+    battery_w: int | None
+    production_w: int | None
+    consumption_w: int | None
+    grid_w: int | None
+
+
+def parse_c_string(token: str) -> str:
+    token = token.strip()
+    if not token.startswith('"') or not token.endswith('"'):
+        return token
+    return json.loads(token)
+
+
+def parse_config(path: Path) -> Config:
+    if not path.exists():
+        raise SystemExit(f"Config not found: {path}")
+
+    values: dict[str, Any] = {}
+    char_re = re.compile(r'^\s*static\s+const\s+char\s+(\w+)\[\]\s*=\s*(".*");')
+    uint_re = re.compile(r"^\s*static\s+const\s+uint16_t\s+(\w+)\s*=\s*(\d+);")
+    define_re = re.compile(r"^\s*#define\s+(\w+)\s+(.+?)\s*$")
+
+    for line in path.read_text(encoding="utf-8").splitlines():
+        match = char_re.match(line)
+        if match:
+            values[match.group(1)] = parse_c_string(match.group(2))
+            continue
+
+        match = uint_re.match(line)
+        if match:
+            values[match.group(1)] = int(match.group(2))
+            continue
+
+        match = define_re.match(line)
+        if not match:
+            continue
+
+        name, raw = match.groups()
+        raw = raw.strip()
+        if raw.startswith('"') and raw.endswith('"'):
+            values[name] = parse_c_string(raw)
+        else:
+            try:
+                values[name] = int(raw)
+            except ValueError:
+                values[name] = raw
+
+    return Config(values)
+
+
+def build_base_url(host: str, port: int) -> str:
+    if "://" not in host:
+        host = f"http://{host}"
+    parsed = urllib.parse.urlsplit(host)
+    if parsed.port is None and port != 80:
+        parsed = parsed._replace(netloc=f"{parsed.hostname}:{port}")
+    return urllib.parse.urlunsplit(parsed).rstrip("/")
+
+
+def build_url(cfg: Config, path: str) -> str:
+    if not path.startswith("/"):
+        path = f"/{path}"
+    return f"{build_base_url(cfg.require('SONNEN_HOST'), cfg.require('SONNEN_PORT'))}{path}"
+
+
+def http_request(cfg: Config, method: str, path: str, body: str = "") -> tuple[int, str]:
+    data = body.encode("utf-8") if body else None
+    req = urllib.request.Request(build_url(cfg, path), data=data, method=method.upper())
+    token = cfg.get("SONNEN_AUTH_TOKEN", "")
+    if token:
+        req.add_header(cfg.get("SONNEN_AUTH_HEADER", "Auth-Token"), token)
+    if data is not None:
+        req.add_header("Content-Type", "application/json")
+
+    try:
+        with urllib.request.urlopen(req, timeout=cfg.get("SONNEN_HTTP_TIMEOUT_MS", 4500) / 1000) as response:
+            return response.status, response.read().decode("utf-8", errors="replace")
+    except urllib.error.HTTPError as exc:
+        return exc.code, exc.read().decode("utf-8", errors="replace")
+
+
+def first(payload: dict[str, Any], keys: tuple[str, ...]) -> Any:
+    for key in keys:
+        if key in payload:
+            return payload[key]
+    return None
+
+
+def as_int(value: Any) -> int | None:
+    if value is None:
+        return None
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return None
+
+
+def read_status(cfg: Config, started: float) -> Sample:
+    code, text = http_request(cfg, "GET", cfg.get("SONNEN_STATUS_PATH", "/api/v2/status"))
+    if not 200 <= code < 300:
+        raise RuntimeError(f"status HTTP {code}: {text[:200]}")
+
+    payload = json.loads(text)
+    if not isinstance(payload, dict):
+        raise RuntimeError("status response is not a JSON object")
+
+    return Sample(
+        elapsed_s=time.monotonic() - started,
+        soc=as_int(first(payload, FIELD_GROUPS["soc"])),
+        mode=str(first(payload, FIELD_GROUPS["mode"]) or "?"),
+        battery_w=as_int(first(payload, FIELD_GROUPS["battery_w"])),
+        production_w=as_int(first(payload, FIELD_GROUPS["production_w"])),
+        consumption_w=as_int(first(payload, FIELD_GROUPS["consumption_w"])),
+        grid_w=as_int(first(payload, FIELD_GROUPS["grid_w"])),
+    )
+
+
+def print_sample(sample: Sample) -> None:
+    print(
+        f"t+{sample.elapsed_s:5.1f}s "
+        f"soc={value_or_dash(sample.soc):>3}% "
+        f"mode={sample.mode:>3} "
+        f"bat_raw={watts(sample.battery_w):>7} "
+        f"bat_ui={watts(-sample.battery_w if sample.battery_w is not None else None):>7} "
+        f"pv={watts(sample.production_w):>7} "
+        f"use={watts(sample.consumption_w):>7} "
+        f"grid={watts(sample.grid_w):>7}"
+    )
+
+
+def value_or_dash(value: int | None) -> str:
+    return "--" if value is None else str(value)
+
+
+def watts(value: int | None) -> str:
+    if value is None:
+        return "--"
+    sign = "+" if value > 0 else ""
+    return f"{sign}{value}W"
+
+
+def sleep_countdown(seconds: int, label: str) -> None:
+    if seconds <= 0:
+        return
+    print(f"{label}: waiting {seconds}s")
+    time.sleep(seconds)
+
+
+def sample_for(cfg: Config, started: float, seconds: int, interval: int) -> list[Sample]:
+    samples: list[Sample] = []
+    deadline = time.monotonic() + seconds
+    while True:
+        sample = read_status(cfg, started)
+        samples.append(sample)
+        print_sample(sample)
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return samples
+        time.sleep(min(interval, remaining))
+
+
+def set_auto(cfg: Config) -> None:
+    code, text = http_request(
+        cfg,
+        cfg.get("SONNEN_CONFIG_METHOD", "PUT"),
+        cfg.get("SONNEN_CONFIGURATION_PATH", "/api/v2/configurations"),
+        cfg.get("SONNEN_SELF_CONSUMPTION_BODY", '{"EM_OperatingMode":"2"}'),
+    )
+    if not 200 <= code < 300:
+        raise RuntimeError(f"AUTO failed HTTP {code}: {text[:200]}")
+    print("Command accepted: AUTO")
+
+
+def set_manual(cfg: Config) -> None:
+    code, text = http_request(
+        cfg,
+        cfg.get("SONNEN_CONFIG_METHOD", "PUT"),
+        cfg.get("SONNEN_CONFIGURATION_PATH", "/api/v2/configurations"),
+        cfg.get("SONNEN_MANUAL_MODE_BODY", '{"EM_OperatingMode":"1"}'),
+    )
+    if not 200 <= code < 300:
+        raise RuntimeError(f"manual mode failed HTTP {code}: {text[:200]}")
+    print("Command accepted: MANUAL")
+
+
+def set_setpoint(cfg: Config, direction: str, power_w: int) -> None:
+    path_name = "SONNEN_CHARGE_SETPOINT_PATH" if direction == "charge" else "SONNEN_DISCHARGE_SETPOINT_PATH"
+    path = cfg.require(path_name)
+    if not path.endswith("/"):
+        path += "/"
+    path += str(power_w)
+
+    if cfg.get("SONNEN_ENABLE_MANUAL_BEFORE_SETPOINT", 1):
+        set_manual(cfg)
+        sleep_countdown(2, "Manual mode settle")
+
+    code, text = http_request(
+        cfg,
+        cfg.get("SONNEN_SETPOINT_METHOD", "POST"),
+        path,
+        cfg.get("SONNEN_SETPOINT_BODY", ""),
+    )
+    if not 200 <= code < 300:
+        raise RuntimeError(f"{direction} {power_w}W failed HTTP {code}: {text[:200]}")
+    print(f"Command accepted: {direction.upper()} {power_w}W")
+
+
+def reached_target(samples: list[Sample], target_w: int, tolerance_w: int) -> bool:
+    values = [sample.battery_w for sample in samples if sample.battery_w is not None]
+    return any(abs(value - target_w) <= tolerance_w for value in values)
+
+
+def print_target_result(direction: str, target_w: int, tolerance_w: int, samples: list[Sample]) -> bool:
+    ok = reached_target(samples, target_w, tolerance_w)
+    label = "PASS" if ok else "WARN"
+    print(f"{label}: {direction} target {target_w:+d}W within +/-{tolerance_w}W")
+    return ok
+
+
+def validate_config(cfg: Config, args: argparse.Namespace) -> None:
+    if cfg.get("SONNEN_DEMO_MODE", 0):
+        raise SystemExit("Refusing: SONNEN_DEMO_MODE is enabled")
+    if not cfg.get("SONNEN_ALLOW_WRITES", 0):
+        raise SystemExit("Refusing: SONNEN_ALLOW_WRITES is disabled")
+    if args.confirm_write != "YES":
+        raise SystemExit("Refusing writes: pass --confirm-write YES")
+    if args.power_w > cfg.get("SONNEN_MAX_SETPOINT_W", 0):
+        raise SystemExit("Refusing: requested power is above SONNEN_MAX_SETPOINT_W")
+
+
+def run_direction(cfg: Config, args: argparse.Namespace, direction: str, started: float) -> bool:
+    target_raw = -args.power_w if direction == "charge" else args.power_w
+    print()
+    print(f"=== Scenario: {direction.upper()} {args.power_w}W ===")
+    set_setpoint(cfg, direction, args.power_w)
+    sleep_countdown(args.settle_seconds, "Setpoint settle")
+    samples = sample_for(cfg, started, args.observe_seconds, args.sample_interval)
+    ok = print_target_result(direction, target_raw, args.tolerance_w, samples)
+
+    print()
+    print("=== Restore AUTO ===")
+    set_auto(cfg)
+    sleep_countdown(args.auto_settle_seconds, "AUTO settle")
+    auto_samples = sample_for(cfg, started, args.auto_observe_seconds, args.sample_interval)
+    if any(sample.mode == "2" for sample in auto_samples):
+        print("PASS: mode returned to AUTO/self-consumption (mode 2)")
+    else:
+        print("WARN: mode 2 was not observed after AUTO; inspect samples above")
+        ok = False
+    return ok
+
+
+def run_plan(_: argparse.Namespace) -> int:
+    print(
+        """Proposed real-battery system test
+
+Safety gates:
+- No write command runs unless the script is started with --confirm-write YES.
+- The script refuses to run if SONNEN_DEMO_MODE=1 or SONNEN_ALLOW_WRITES=0.
+- The script always tries to restore AUTO in a finally block.
+- Default test power is 1000W, below the current 3600W maximum.
+
+Scenario:
+1. Read baseline status for a few samples.
+2. Send DISCHARGE 1000W, wait, then verify raw Pac_total_W approaches +1000W.
+3. Restore AUTO, wait, then verify mode 2 is seen and log normal behavior.
+4. Send CHARGE 1000W, wait, then verify raw Pac_total_W approaches -1000W.
+5. Restore AUTO again and log final normal behavior.
+
+Suggested command after approval:
+scripts/sonnen-system-test run --confirm-write YES
+
+Optional safer first run:
+scripts/sonnen-system-test run --confirm-write YES --power-w 500 --skip-charge
+"""
+    )
+    return 0
+
+
+def run(args: argparse.Namespace) -> int:
+    cfg = parse_config(Path(args.config))
+    validate_config(cfg, args)
+
+    started = time.monotonic()
+    ok = True
+    try:
+        print("=== Baseline ===")
+        first_sample = read_status(cfg, started)
+        print_sample(first_sample)
+        if first_sample.soc is not None:
+            if first_sample.soc < args.min_soc_discharge and not args.skip_discharge:
+                raise SystemExit("Refusing discharge test: SOC is below min-soc-discharge")
+            if first_sample.soc > args.max_soc_charge and not args.skip_charge:
+                raise SystemExit("Refusing charge test: SOC is above max-soc-charge")
+        sample_for(cfg, started, args.baseline_seconds, args.sample_interval)
+
+        if not args.skip_discharge:
+            ok = run_direction(cfg, args, "discharge", started) and ok
+        if not args.skip_charge:
+            ok = run_direction(cfg, args, "charge", started) and ok
+    finally:
+        if args.restore_auto:
+            print()
+            print("=== Final safety restore AUTO ===")
+            try:
+                set_auto(cfg)
+            except Exception as exc:  # noqa: BLE001 - this is a safety net.
+                print(f"WARN: final AUTO restore failed: {exc}", file=sys.stderr)
+
+    return 0 if ok else 1
+
+
+def make_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    plan = subparsers.add_parser("plan", help="Show the proposed real-battery test without touching the battery")
+    plan.set_defaults(func=run_plan)
+
+    run_parser = subparsers.add_parser("run", help="Run the approved real-battery test")
+    run_parser.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
+    run_parser.add_argument("--confirm-write", default="")
+    run_parser.add_argument("--power-w", type=int, default=1000)
+    run_parser.add_argument("--tolerance-w", type=int, default=350)
+    run_parser.add_argument("--baseline-seconds", type=int, default=10)
+    run_parser.add_argument("--settle-seconds", type=int, default=8)
+    run_parser.add_argument("--observe-seconds", type=int, default=20)
+    run_parser.add_argument("--auto-settle-seconds", type=int, default=10)
+    run_parser.add_argument("--auto-observe-seconds", type=int, default=15)
+    run_parser.add_argument("--sample-interval", type=int, default=5)
+    run_parser.add_argument("--min-soc-discharge", type=int, default=20)
+    run_parser.add_argument("--max-soc-charge", type=int, default=90)
+    run_parser.add_argument("--skip-discharge", action="store_true")
+    run_parser.add_argument("--skip-charge", action="store_true")
+    run_parser.add_argument("--restore-auto", action=argparse.BooleanOptionalAction, default=True)
+    run_parser.set_defaults(func=run)
+
+    return parser
+
+
+def main() -> int:
+    parser = make_parser()
+    args = parser.parse_args()
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
