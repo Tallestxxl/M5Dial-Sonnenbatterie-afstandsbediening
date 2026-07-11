@@ -96,6 +96,7 @@ struct ApiResult {
 };
 
 static constexpr int kActionCount = 5;
+static constexpr int kDialGroupOffsetY = -12;
 static constexpr uint32_t kLongPressMs = 1200;
 static constexpr float kDegToRad = 0.01745329252f;
 
@@ -284,29 +285,29 @@ static void drawUi() {
 
   uint16_t ringColor = statusColor();
   int displaySoc = battery.valid ? battery.soc : 0;
-  drawRing(120, 103, 82, displaySoc, ringColor);
+  drawRing(120, 103 + kDialGroupOffsetY, 82, displaySoc, ringColor);
 
   M5Dial.Display.setTextSize(1);
   M5Dial.Display.setTextColor(statusColor());
-  M5Dial.Display.drawString(fitText(statusMessage, 24), 120, 49);
+  M5Dial.Display.drawString(fitText(statusMessage, 24), 120, 49 + kDialGroupOffsetY);
 
   M5Dial.Display.setTextDatum(middle_center);
   if (uiState == UiState::EditingSetpoint) {
     M5Dial.Display.setTextColor(colText);
     M5Dial.Display.setTextSize(3);
-    M5Dial.Display.drawString(String(requestedPowerW), 120, 94);
+    M5Dial.Display.drawString(String(requestedPowerW), 120, 94 + kDialGroupOffsetY);
     M5Dial.Display.setTextSize(1);
     M5Dial.Display.setTextColor(colMuted);
-    M5Dial.Display.drawString("WATT", 120, 121);
+    M5Dial.Display.drawString("WATT", 120, 121 + kDialGroupOffsetY);
   } else {
     M5Dial.Display.setTextColor(colText);
     M5Dial.Display.setTextSize(4);
-    M5Dial.Display.drawString(battery.valid ? String(battery.soc) : "--", 111, 96);
+    M5Dial.Display.drawString(battery.valid ? String(battery.soc) : "--", 111, 96 + kDialGroupOffsetY);
     M5Dial.Display.setTextSize(2);
-    M5Dial.Display.drawString("%", 163, 101);
+    M5Dial.Display.drawString("%", 163, 101 + kDialGroupOffsetY);
     M5Dial.Display.setTextSize(1);
     M5Dial.Display.setTextColor(colMuted);
-    M5Dial.Display.drawString("SOC", 120, 126);
+    M5Dial.Display.drawString("SOC", 120, 126 + kDialGroupOffsetY);
   }
 
   drawMetric(60, 150, "PV", battery.valid ? signedWatts(battery.productionW) : "--", colGood);
