@@ -19,8 +19,8 @@ from reportlab.pdfgen import canvas
 
 
 ROOT = Path(__file__).resolve().parents[2]
-USER_OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.2.pdf"
-INSTALLER_OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.1.pdf"
+USER_OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.4.pdf"
+INSTALLER_OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.2.pdf"
 FRONT_PHOTO = ROOT / "docs/images/m5dial-remote-status-photo.jpg"
 CASE_PHOTO = ROOT / "hardware/case/m5stack-dial-case-preview.webp"
 FONT_DIR = Path(reportlab.__file__).resolve().parent / "fonts"
@@ -545,10 +545,10 @@ def cover(c: canvas.Canvas) -> None:
     c.roundRect(48, 96, 230, 34, 7, fill=1, stroke=0)
     c.setFillColor(white)
     c.setFont("DV-Bold", 8.5)
-    c.drawString(62, 109, "Versie 1.2  |  3 augustus 2026")
+    c.drawString(62, 109, "Versie 1.4  |  3 augustus 2026")
     c.setFillColor(HexColor("#8FA0A4"))
     c.setFont("DV", 7.2)
-    c.drawString(48, 58, "Voor firmwarecommit 50f31c3 en de huidige apparaatconfiguratie")
+    c.drawString(48, 58, "Bijgewerkt voor automatische opdrachtcontrole en Mode-verificatie")
     c.drawString(48, 43, "DIY-project - geen officieel product van sonnen of M5Stack")
     c.showPage()
 
@@ -1094,10 +1094,10 @@ def installer_cover(c: canvas.Canvas) -> None:
     c.roundRect(48, 103, 230, 34, 7, fill=1, stroke=0)
     c.setFillColor(white)
     c.setFont("DV-Bold", 8.5)
-    c.drawString(62, 116, "Versie 1.1  |  3 augustus 2026")
+    c.drawString(62, 116, "Versie 1.2  |  3 augustus 2026")
     c.setFillColor(HexColor("#8FA0A4"))
     c.setFont("DV", 7.2)
-    c.drawString(48, 63, "Voor firmwarecommit 50f31c3 en de huidige apparaatconfiguratie")
+    c.drawString(48, 63, "Bijgewerkt voor automatische opdrachtcontrole en Mode-verificatie")
     c.drawString(48, 48, "Bevat geen wifi-wachtwoord, API-token of ander geheim")
     c.showPage()
 
@@ -1423,7 +1423,7 @@ def user_page_16(c: canvas.Canvas) -> None:
     source_y = y - 20
     sources = [
         ("Project en firmware", "github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening", "https://github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening"),
-        ("Installateurshandleiding", "GitHub: docs/gebruikershandleiding/installateurshandleiding", "https://github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening/blob/main/docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.1.pdf"),
+        ("Installateurshandleiding", "GitHub: docs/gebruikershandleiding/installateurshandleiding", "https://github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening/blob/main/docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.2.pdf"),
         ("Officiële M5Dial-documentatie", "docs.m5stack.com/en/core/M5Dial", "https://docs.m5stack.com/en/core/M5Dial"),
         ("3D-behuizing", "printables.com/model/992288-m5stack-dial-case/files", "https://www.printables.com/model/992288-m5stack-dial-case/files"),
         ("Sonnen release notes", "sonnen.de/rln-sb", "https://www.sonnen.de/rln-sb"),

@@ -140,8 +140,8 @@ Controleer de actuele licentievoorwaarden op Printables voordat je de STL-bestan
 
 ## Documentatie
 
-- [Gebruikershandleiding v1.2 (PDF)](docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.2.pdf)
-- [Installateurshandleiding v1.1 (PDF)](docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.1.pdf)
+- [Gebruikershandleiding v1.4 (PDF)](docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.4.pdf)
+- [Installateurshandleiding v1.2 (PDF)](docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.2.pdf)
 - [Handleidingbron en bouwinstructies](docs/gebruikershandleiding/README.md)
 - [Firmware README](arduino/sketchbook/SonnenDialRemote/README.md)
 - [Hardware checklist](docs/sonnen-dial-hardware.md)
