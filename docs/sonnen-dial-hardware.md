@@ -4,7 +4,7 @@ Praktische koop- en bring-up-checklist voor de stand-alone M5 Dial afstandsbedie
 
 ## Kopen
 
-Koop de **M5Stack Dial**, ook aangeduid als **Dial SKU K130** of **M5Dial**. Niet verwarren met losse M5StampS3-modules, Atom/Stick-apparaten of andere ronde M5-producten: deze firmware gebruikt de ingebouwde rotary encoder, het ronde 240x240 touch-display, de screen button en de M5Dial power wrapper.
+Koop de **M5Stack Dial**, ook aangeduid als **Dial SKU K130** of **M5Dial**. Niet verwarren met losse M5StampS3-modules, Atom/Stick-apparaten of andere ronde M5-producten: deze firmware gebruikt de ingebouwde draai- en drukring, het ronde 240x240-touchdisplay en de M5Dial power wrapper. Het touchscreen toont de interface; aanraken en vegen zijn in deze firmware niet aan een functie gekoppeld.
 
 Minimale set:
 
@@ -51,9 +51,9 @@ scripts/sonnen-dial compile
 scripts/sonnen-probe make-config --force --demo --wifi-ssid DEMO --wifi-password DEMO --host 192.168.1.50 --dim-after-ms 120000 --sleep-after-ms 0
 ```
 
-Met `--sleep-after-ms 0` schakelt de demo niet automatisch helemaal uit. `SONNEN_ENABLE_POWER_OFF` blijft standaard `0`, waardoor ook de handmatige slaapactie voorlopig alleen dimt. Dat is veiliger tijdens de eerste hardwaretest, omdat dimmen eenvoudig met draaien of drukken terugkomt.
+Met `--sleep-after-ms 0` schakelt de demo niet automatisch helemaal uit. `SONNEN_ENABLE_POWER_OFF` blijft standaard `0`, waardoor ook de handmatige slaapactie voorlopig alleen dimt. Dat is veiliger tijdens de eerste hardwaretest, omdat dimmen eenvoudig met draaien of indrukken van de ring terugkomt.
 
-6. Upload met `scripts/sonnen-dial upload PORT`, en controleer scherm, encoder, knop en dimmen.
+6. Upload met `scripts/sonnen-dial upload PORT`, en controleer scherm, draaien en indrukken van de ring en dimmen.
 7. Test daarna de echte Wi-Fi/HTTP-flow zonder batterij door op de laptop een mockserver te starten:
 
 ```sh
@@ -99,9 +99,9 @@ Standaard is `SONNEN_WIFI_OFF_AFTER_REQUEST` `1`: na elke API-call wordt Wi-Fi u
 Voor een huiskamer-afstandsbediening is het beste gedrag:
 
 - Lezen mag automatisch.
-- Schrijven alleen na expliciete knopbevestiging.
+- Schrijven alleen na expliciet indrukken van de ring.
 - Charge/discharge-setpoints zijn begrensd.
-- Lange druk schakelt uit of annuleert.
+- Lang indrukken van de ring schakelt uit of annuleert.
 - Self-consumption blijft altijd snel bereikbaar.
 
 Voor endpoint-checks vanaf de laptop is er `scripts/sonnen-probe`. Een niet-GET request wordt geweigerd tenzij je bewust `--allow-write --confirm-write YES` meegeeft. Gebruik dat alleen met een lage setpoint-limiet en pas nadat je de endpoint-documentatie of response van jouw batterij hebt gecontroleerd.

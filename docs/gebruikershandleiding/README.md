@@ -2,8 +2,8 @@
 
 De gepubliceerde handleidingen staan hier:
 
-- [Gebruikershandleiding v1.4](M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.4.pdf)
-- [Installateurshandleiding v1.2](M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.2.pdf)
+- [Gebruikershandleiding v1.5](M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.5.pdf)
+- [Installateurshandleiding v1.3](M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.3.pdf)
 
 Beide PDF's worden gegenereerd uit `build_manual.py`. De bron gebruikt de projectfoto's uit `docs/images/` en `hardware/case/` en bevat geen wifi-wachtwoorden, API-tokens of andere private configuratie.
 
@@ -24,8 +24,8 @@ scripts/build-manual
 De generator schrijft rechtstreeks naar:
 
 ```text
-docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.4.pdf
-docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.2.pdf
+docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.5.pdf
+docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.3.pdf
 ```
 
 ## Bij firmwarewijzigingen

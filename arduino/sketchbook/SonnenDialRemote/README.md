@@ -8,8 +8,8 @@ Hardware eerst kopen? Zie [docs/sonnen-dial-hardware.md](../../../docs/sonnen-di
 
 - Ronde status-UI voor SOC, PV, verbruik, net en batterijvermogen.
 - Encoder-menu: `STATUS`, `AUTO`, `CHARGE`, `DISCH`, `DIM`/`SLEEP`.
-- Setpoint-flow met bewuste bevestiging: draai naar `CHARGE` of `DISCH`, druk, draai wattage, druk nogmaals om te verzenden.
-- Lange druk dimt of schakelt uit; in setpoint-modus annuleert lange druk eerst.
+- Setpoint-flow met bewuste bevestiging: draai naar `CHARGE` of `DISCH`, druk de ring in, kies het wattage en druk de ring nogmaals in om te verzenden.
+- Lang indrukken van de ring dimt of schakelt uit; in setpoint-modus annuleert dit eerst.
 - Auto-dim en optionele auto-poweroff voor batterijgebruik.
 - Wi-Fi gaat standaard na elke Sonnen-request uit voor lager energieverbruik.
 - Adaptieve status-refresh: sneller bij laden/ontladen, rustiger bij weinig batterijvermogen, en automatische retry na statusfouten.
@@ -37,9 +37,9 @@ De status-refresh is adaptief: `SONNEN_ACTIVE_REFRESH_MS` geldt wanneer de batte
 
 Na een schrijfopdracht verschijnt tijdelijk `Doel +...W`, `Doel -...W` of `AUTO controleren`. De eerste meting volgt standaard na 2 seconden en wordt om de 2 seconden herhaald, maximaal 12 seconden. Laden en ontladen zijn bevestigd wanneer `Mode 1` actief is en de werkelijk gemeten `BAT`-waarde binnen de controlemarge ligt; `AUTO` is bevestigd bij `Mode 2`. Alleen de werkelijk gemeten `BAT`-waarde wordt getoond. Na afloop blijft de status 30 seconden elke 5 seconden verversen. De instellingen beginnen met `SONNEN_COMMAND_VERIFY_` en `SONNEN_POST_COMMAND_`.
 
-Voor de eerste hardwaretest mag `SONNEN_DEMO_MODE` tijdelijk op `1`. Dan kun je scherm, encoder, knop en dimmen testen zonder Wi-Fi of Sonnenbatterie. Zet deze voor echte statusmetingen terug op `0`.
+Voor de eerste hardwaretest mag `SONNEN_DEMO_MODE` tijdelijk op `1`. Dan kun je scherm, draai- en drukring en dimmen testen zonder Wi-Fi of Sonnenbatterie. Zet deze voor echte statusmetingen terug op `0`.
 
-`SONNEN_ENABLE_POWER_OFF` staat standaard op `0`. Dan dimt de `SLEEP`/`DIM` actie alleen het scherm en schakelt een lange druk niet echt uit. Zet dit pas op `1` nadat wake uit power-off betrouwbaar is getest op jouw M5 Dial.
+`SONNEN_ENABLE_POWER_OFF` staat standaard op `0`. Dan dimt de `SLEEP`/`DIM` actie alleen het scherm en schakelt lang indrukken van de ring het apparaat niet echt uit. Zet dit pas op `1` nadat wake uit power-off betrouwbaar is getest op jouw M5 Dial.
 
 Controleer de status-API eerst vanaf de laptop:
 
@@ -78,11 +78,12 @@ scripts/sonnen-dial upload /dev/cu.usbmodemXXXX
 
 ## Bedienconcept
 
-- Draaien bladert door acties.
-- Korte druk op `STATUS`: ververs status.
-- Korte druk op `AUTO`: zet terug naar self-consumption via de geconfigureerde configuratiecall, alleen als `SONNEN_ALLOW_WRITES` aan staat.
-- Korte druk op `CHARGE` of `DISCH`: open wattagekeuze.
-- In wattagekeuze: draaien past vermogen aan, korte druk bevestigt. Bij `SONNEN_ALLOW_WRITES 0` toont de firmware `Writes locked` en verstuurt niets.
-- Lange druk: annuleren of dimmen. Alleen bij `SONNEN_ENABLE_POWER_OFF 1` schakelt hij echt uit.
+- Draai de ring om door acties te bladeren.
+- Druk de ring bij `STATUS` kort in om de status te verversen.
+- Druk de ring bij `AUTO` kort in om terug te keren naar self-consumption via de geconfigureerde configuratiecall, alleen als `SONNEN_ALLOW_WRITES` aan staat.
+- Druk de ring bij `CHARGE` of `DISCH` kort in om de wattagekeuze te openen.
+- Draai in de wattagekeuze om het vermogen aan te passen en druk de ring kort in om te bevestigen. Bij `SONNEN_ALLOW_WRITES 0` toont de firmware `Writes locked` en verstuurt niets.
+- Druk de ring lang in om te annuleren of dimmen. Alleen bij `SONNEN_ENABLE_POWER_OFF 1` schakelt hij echt uit.
+- Het ronde touchscreen toont alleen de interface; aanraken en vegen zijn in deze firmware niet aan een functie gekoppeld.
 
 In demo-modus toont `STATUS` gesimuleerde waarden en worden alle schrijfacties geblokkeerd met `Demo only`.

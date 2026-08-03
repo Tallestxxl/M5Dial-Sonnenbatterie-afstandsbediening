@@ -19,8 +19,8 @@ from reportlab.pdfgen import canvas
 
 
 ROOT = Path(__file__).resolve().parents[2]
-USER_OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.4.pdf"
-INSTALLER_OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.2.pdf"
+USER_OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.5.pdf"
+INSTALLER_OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.3.pdf"
 FRONT_PHOTO = ROOT / "docs/images/m5dial-remote-status-photo.jpg"
 CASE_PHOTO = ROOT / "hardware/case/m5stack-dial-case-preview.webp"
 FONT_DIR = Path(reportlab.__file__).resolve().parent / "fonts"
@@ -545,7 +545,7 @@ def cover(c: canvas.Canvas) -> None:
     c.roundRect(48, 96, 230, 34, 7, fill=1, stroke=0)
     c.setFillColor(white)
     c.setFont("DV-Bold", 8.5)
-    c.drawString(62, 109, "Versie 1.4  |  3 augustus 2026")
+    c.drawString(62, 109, "Versie 1.5  |  3 augustus 2026")
     c.setFillColor(HexColor("#8FA0A4"))
     c.setFont("DV", 7.2)
     c.drawString(48, 58, "Bijgewerkt voor automatische opdrachtcontrole en Mode-verificatie")
@@ -680,8 +680,8 @@ def page_4(c: canvas.Canvas) -> None:
     x = 370
     label(c, "Onderdelen", x, y, color=BLUE)
     items = [
-        ("1", "Draairing", "Draai links of rechts om door het menu te lopen of een wattage te kiezen.", ORANGE),
-        ("2", "Drukknop onder scherm", "Druk het ronde scherm fysiek in. Aanraken of vegen wordt door deze firmware niet gebruikt.", BLUE),
+        ("1", "Draai- en drukring", "Draai links of rechts om een menuoptie of wattage te kiezen. Druk de ring in om te selecteren of te bevestigen.", ORANGE),
+        ("2", "Touchscreen", "Toont de status en menu's. Aanraken of vegen is in deze firmware niet aan een functie gekoppeld.", BLUE),
         ("3", "USB-C", "Voeding, programmeren en seriële verbinding. Gebruik bij uploaden een datakabel.", GREEN),
         ("4", "3D-geprinte behuizing", "Beschermt de Dial en biedt ruimte voor voeding of een accu. De uitvoering kan afwijken.", AMBER),
     ]
@@ -701,7 +701,7 @@ def page_4(c: canvas.Canvas) -> None:
         c,
         "Let op bij wakker maken",
         "Het scherm dimt na twee minuten. Draai één klik om wakker te maken en controleer daarna de menuoptie. "
-        "Een druk kan namelijk ook de geselecteerde actie uitvoeren.",
+        "Het indrukken van de ring kan namelijk ook de geselecteerde actie uitvoeren.",
         x,
         ty + 2,
         181,
@@ -771,7 +771,7 @@ def page_6(c: canvas.Canvas) -> None:
             ("Wacht op de eerste uitlezing", "Je ziet achtereenvolgens Starting, Reading en mogelijk Wi-Fi. Een eerste verbinding kan ongeveer 10 tot 15 seconden duren."),
             ("Controleer SOC", "Vergelijk het grote percentage met de Sonnen-app of het lokale dashboard. De firmware gebruikt bij voorkeur USOC, de gebruikersweergave van de batterij."),
             ("Controleer de modus", "Mode 2 betekent normaal AUTO/zelfverbruik. Mode 1 betekent handmatige regeling. Andere waarden kunnen modelspecifiek zijn."),
-            ("Voer een veilige bedieningstest uit", "Selecteer STATUS en druk kort. Test daarna alleen indien gewenst met 100 W, en zet de batterij meteen terug op AUTO."),
+            ("Voer een veilige bedieningstest uit", "Selecteer STATUS en druk de ring kort in. Test daarna alleen indien gewenst met 100 W, en zet de batterij meteen terug op AUTO."),
         ],
         M,
         y,
@@ -839,13 +839,13 @@ def page_7(c: canvas.Canvas) -> None:
 
 
 def page_8(c: canvas.Canvas) -> None:
-    y = section_title(c, "Bediening", "Draaien, drukken en het menu", 8)
-    y = paragraph(c, "De firmware gebruikt twee handelingen: draaien aan de ring en het ronde scherm fysiek indrukken. De touchsensor wordt niet gebruikt; vegen of licht aantikken heeft daarom geen functie.", M, y, W - 2 * M, size=9.6, leading=13.4)
+    y = section_title(c, "Bediening", "De draairing en het menu", 8)
+    y = paragraph(c, "De firmware gebruikt de draairing voor beide handelingen: draai de ring om te kiezen en druk de ring in om uit te voeren of te bevestigen. Het ronde touchscreen toont de interface; aanraken en vegen zijn in deze firmware niet aan een functie gekoppeld.", M, y, W - 2 * M, size=9.6, leading=13.4)
     y -= 12
     cards = [
-        ("DRAAIEN", "Menu kiezen of wattage wijzigen", GREEN),
-        ("KORT DRUKKEN", "Selecteren, starten of bevestigen", BLUE),
-        ("LANG DRUKKEN", "Minimaal 1,2 s: annuleren of dimmen", ORANGE),
+        ("RING DRAAIEN", "Menu of wattage kiezen", GREEN),
+        ("KORT INDRUKKEN", "Selecteren of bevestigen", BLUE),
+        ("LANG INDRUKKEN", "Minimaal 1,2 s: annuleren of dimmen", ORANGE),
     ]
     gap = 15
     cw = (W - 2 * M - 2 * gap) / 3
@@ -874,12 +874,12 @@ def page_8(c: canvas.Canvas) -> None:
     rows = [
         ["STATUS", "Leest de actuele waarden opnieuw uit. Wijzigt de batterij niet."],
         ["AUTO", "Zet de Sonnenbatterie direct terug naar automatische zelfverbruiksregeling."],
-        ["CHARGE", "Opent eerst de wattagekeuze. Een tweede korte druk verzendt laden."],
-        ["DISCH", "Opent eerst de wattagekeuze. Een tweede korte druk verzendt ontladen."],
+        ["CHARGE", "Opent eerst de wattagekeuze. Een tweede korte druk op de ring verzendt laden."],
+        ["DISCH", "Opent eerst de wattagekeuze. Een tweede korte druk op de ring verzendt ontladen."],
         ["DIM", "Dimt het scherm. De huidige firmware schakelt niet volledig uit."],
     ]
     y = draw_table(c, ["Optie", "Functie"], rows, M, y, [85, W - 2 * M - 85], font_size=7.9)
-    callout(c, "Wakker maken zonder verrassing", "Draai één klik om een gedimd scherm wakker te maken. De selectie verschuift daarbij ook één positie; controleer dus de onderste balk voordat je drukt.", M, y, W - 2 * M, fill=PALE_ORANGE, accent=ORANGE, body_size=8.4)
+    callout(c, "Wakker maken zonder verrassing", "Draai één klik om een gedimd scherm wakker te maken. De selectie verschuift daarbij ook één positie; controleer dus de onderste balk voordat je de ring indrukt.", M, y, W - 2 * M, fill=PALE_ORANGE, accent=ORANGE, body_size=8.4)
     c.showPage()
 
 
@@ -887,12 +887,12 @@ def page_9(c: canvas.Canvas) -> None:
     y = section_title(c, "Bediening", "STATUS en AUTO", 9)
     label(c, "STATUS - alleen uitlezen", M, y, color=GREEN)
     y -= 18
-    y = draw_flow(c, ["Draai naar STATUS", "Druk kort", "Reading / WORKING", "Nieuwe waarden"], M, y, W - 2 * M, accent=GREEN)
+    y = draw_flow(c, ["Draai naar STATUS", "Druk ring kort", "Reading / WORKING", "Nieuwe waarden"], M, y, W - 2 * M, accent=GREEN)
     y = paragraph(c, "STATUS maakt wifi actief, leest /api/v2/status, werkt het scherm bij en schakelt wifi daarna weer uit. Deze actie wijzigt geen instelling in de Sonnenbatterie.", M, y, W - 2 * M, size=9.2, leading=13)
     y -= 15
     label(c, "AUTO - normale regeling herstellen", M, y, color=BLUE)
     y -= 18
-    y = draw_flow(c, ["Draai naar AUTO", "Druk één keer", "AUTO controleren", "Mode 2 bevestigd"], M, y, W - 2 * M, accent=BLUE)
+    y = draw_flow(c, ["Draai naar AUTO", "Druk ring kort", "AUTO controleren", "Mode 2 bevestigd"], M, y, W - 2 * M, accent=BLUE)
     y = paragraph(c, "AUTO stuurt onmiddellijk een schrijfcommando. Daarna leest de M5Dial de batterij na 2 seconden en vervolgens elke 2 seconden opnieuw uit, maximaal 12 seconden lang. De controle is geslaagd zodra OperatingMode 2 wordt gemeten: automatische zelfverbruiksregeling.", M, y, W - 2 * M, size=9.0, leading=12.7)
     y -= 12
     y = callout(c, "Wanneer AUTO gebruiken?", "Na iedere handmatige laad- of ontlaadactie, wanneer het ingestelde vermogen niet meer nodig is, en wanneer je onzeker bent welke handmatige modus actief is.", M, y, W - 2 * M, fill=PALE_GREEN, accent=GREEN, body_size=9)
@@ -908,12 +908,12 @@ def page_10(c: canvas.Canvas) -> None:
         c,
         [
             ("Kies CHARGE", "Draai totdat < CHARGE > onderin staat."),
-            ("Open de wattagekeuze", "Druk kort. Er is nu nog geen laadopdracht verstuurd."),
+            ("Open de wattagekeuze", "Druk de ring kort in. Er is nu nog geen laadopdracht verstuurd."),
             ("Stel het vermogen in", "Draai in stappen van 100 W. Het bereik loopt van 0 tot 3600 W; de startwaarde is doorgaans de laatst gekozen waarde."),
             ("Controleer nogmaals", "Lees het grote getal en controleer dat bovenaan Charge W staat."),
-            ("Bevestig", "Druk kort. Nu schakelt de firmware naar handmatige modus en stuurt zij het laadsetpoint."),
+            ("Bevestig", "Druk de ring kort in. Nu schakelt de firmware naar handmatige modus en stuurt zij het laadsetpoint."),
             ("Laat de automatische controle lopen", "Bovenaan staat Doel +500W. De M5Dial leest na 2 seconden en daarna elke 2 seconden de echte status; BAT moet positief worden."),
-            ("Sluit af met AUTO", "Wanneer handmatig laden niet meer nodig is: selecteer AUTO en druk één keer."),
+            ("Sluit af met AUTO", "Wanneer handmatig laden niet meer nodig is: selecteer AUTO en druk de ring kort in."),
         ],
         M,
         y,
@@ -921,7 +921,7 @@ def page_10(c: canvas.Canvas) -> None:
         size=8.6,
         gap=7,
     )
-    y = callout(c, "Annuleren vóór verzenden", "Houd de knop minimaal 1,2 seconde ingedrukt terwijl het wattage zichtbaar is. De tekst Cancelled verschijnt en er wordt geen setpoint verstuurd.", M, y, W - 2 * M, fill=PALE_BLUE, accent=BLUE, body_size=8.5)
+    y = callout(c, "Annuleren vóór verzenden", "Houd de ring minimaal 1,2 seconde ingedrukt terwijl het wattage zichtbaar is. De tekst Cancelled verschijnt en er wordt geen setpoint verstuurd.", M, y, W - 2 * M, fill=PALE_BLUE, accent=BLUE, body_size=8.5)
     label(c, "Verwachte schermreactie", M, y - 2, color=GREEN)
     y -= 20
     y = draw_flow(c, ["CHARGE", "500 W", "Doel +500W", "echte BAT +...W", "AUTO"], M, y, W - 2 * M, accent=GREEN)
@@ -936,12 +936,12 @@ def page_11(c: canvas.Canvas) -> None:
         c,
         [
             ("Kies DISCH", "Draai totdat < DISCH > onderin staat."),
-            ("Open de wattagekeuze", "Druk kort. Er is nog geen ontlaadopdracht verstuurd."),
+            ("Open de wattagekeuze", "Druk de ring kort in. Er is nog geen ontlaadopdracht verstuurd."),
             ("Stel het vermogen in", "Draai in stappen van 100 W, bij een eerste test bijvoorbeeld naar 100 W of 500 W."),
             ("Controleer nogmaals", "Lees het wattage en controleer dat bovenaan Disch W staat."),
-            ("Bevestig", "Druk kort. De firmware zet de batterij in handmatige modus en stuurt het ontlaadsetpoint."),
+            ("Bevestig", "Druk de ring kort in. De firmware zet de batterij in handmatige modus en stuurt het ontlaadsetpoint."),
             ("Laat de automatische controle lopen", "Bovenaan staat Doel -500W. De M5Dial leest na 2 seconden en daarna elke 2 seconden de echte status; BAT moet negatief worden."),
-            ("Sluit af met AUTO", "Selecteer AUTO en druk één keer om de normale zelfverbruiksregeling te herstellen."),
+            ("Sluit af met AUTO", "Selecteer AUTO en druk de ring kort in om de normale zelfverbruiksregeling te herstellen."),
         ],
         M,
         y,
@@ -949,7 +949,7 @@ def page_11(c: canvas.Canvas) -> None:
         size=8.6,
         gap=7,
     )
-    y = callout(c, "Annuleren vóór verzenden", "Houd de knop minimaal 1,2 seconde ingedrukt in de wattagekeuze. Bij Cancelled is geen ontlaadsetpoint verstuurd.", M, y, W - 2 * M, fill=PALE_BLUE, accent=BLUE, body_size=8.5)
+    y = callout(c, "Annuleren vóór verzenden", "Houd de ring minimaal 1,2 seconde ingedrukt in de wattagekeuze. Bij Cancelled is geen ontlaadsetpoint verstuurd.", M, y, W - 2 * M, fill=PALE_BLUE, accent=BLUE, body_size=8.5)
     label(c, "Verwachte schermreactie", M, y - 2, color=BLUE)
     y -= 20
     y = draw_flow(c, ["DISCH", "500 W", "Doel -500W", "echte BAT -...W", "AUTO"], M, y, W - 2 * M, accent=BLUE)
@@ -982,7 +982,7 @@ def page_13(c: canvas.Canvas) -> None:
     y -= 10
     rows = [
         ["Starting", "Firmware start op.", "Wacht op de eerste statuscall."],
-        ["Reading / WORKING", "Bezig met wifi of API.", "Niet opnieuw drukken; enkele seconden wachten."],
+        ["Reading / WORKING", "Bezig met wifi of API.", "Druk de ring niet opnieuw in; wacht enkele seconden."],
         ["Wi-Fi", "Bezig verbinding te maken.", "Normaal kort zichtbaar."],
         ["Mode 2", "AUTO/zelfverbruik actief.", "Normale toestand na AUTO."],
         ["Mode 1", "Handmatige regeling actief.", "Controleer of laden/ontladen bewust is gekozen."],
@@ -1032,7 +1032,7 @@ def page_14(c: canvas.Canvas) -> None:
             title_y -= 12
         bullets(c, points, x + 12, yy - 49 - (len(title_lines) - 1) * 12, card_w - 24, size=8.0, leading=11.2, gap=4, dot=BLUE if col == 0 else ORANGE)
     y = top - 516
-    y = callout(c, "Bij een rood foutscherm", "Een korte druk voert eerst een STATUS-poging uit, ongeacht welke menuoptie eerder was geselecteerd. Een lange druk annuleert de foutweergave. De firmware probeert daarnaast automatisch opnieuw na 20 seconden.", M, y, W - 2 * M, fill=PALE_RED, accent=RED, body_size=8.6)
+    y = callout(c, "Bij een rood foutscherm", "Kort indrukken van de ring voert eerst een STATUS-poging uit, ongeacht welke menuoptie eerder was geselecteerd. Lang indrukken annuleert de foutweergave. De firmware probeert daarnaast automatisch opnieuw na 20 seconden.", M, y, W - 2 * M, fill=PALE_RED, accent=RED, body_size=8.6)
     callout(c, "Niet eindeloos herhalen", "Blijft een opdracht mislukken, stuur dan geen reeks nieuwe setpoints. Herstel AUTO via het officiële dashboard en controleer netwerk, API-token en batterijstatus.", M, y, W - 2 * M, fill=PALE_ORANGE, accent=ORANGE, body_size=8.6)
     c.showPage()
 
@@ -1094,7 +1094,7 @@ def installer_cover(c: canvas.Canvas) -> None:
     c.roundRect(48, 103, 230, 34, 7, fill=1, stroke=0)
     c.setFillColor(white)
     c.setFont("DV-Bold", 8.5)
-    c.drawString(62, 116, "Versie 1.2  |  3 augustus 2026")
+    c.drawString(62, 116, "Versie 1.3  |  3 augustus 2026")
     c.setFillColor(HexColor("#8FA0A4"))
     c.setFont("DV", 7.2)
     c.drawString(48, 63, "Bijgewerkt voor automatische opdrachtcontrole en Mode-verificatie")
@@ -1270,7 +1270,7 @@ def installer_page_6(c: canvas.Canvas) -> None:
     )
     steps = [
         ("Leg de uitgangssituatie vast", "Noteer SOC, Mode en BAT. Controleer dezelfde waarden in het officiële Sonnen-dashboard."),
-        ("Test STATUS", "Kies STATUS en druk kort. De waarden moeten binnen ongeveer 5 tot 15 seconden actueel worden."),
+        ("Test STATUS", "Kies STATUS en druk de ring kort in. De waarden moeten binnen ongeveer 5 tot 15 seconden actueel worden."),
         ("Test laden met 100 W", "Kies CHARGE, stel 100 W in en bevestig. Verwacht Doel +100W, Mode 1 en een positief gemeten BAT-vermogen."),
         ("Herstel AUTO", "Kies AUTO en bevestig. Verwacht AUTO controleren en daarna Mode 2."),
         ("Test ontladen met 100 W", "Kies DISCH, stel 100 W in en bevestig. Verwacht Doel -100W, Mode 1 en een negatief gemeten BAT-vermogen, voor zover toegestaan."),
@@ -1391,11 +1391,11 @@ def user_page_16(c: canvas.Canvas) -> None:
     c.setFont("DV-Bold", 12)
     c.drawString(M + 18, y - 27, "DAGELIJKS")
     quick = [
-        "Draai: kies STATUS / AUTO / CHARGE / DISCH / DIM",
-        "Kort drukken: uitvoeren of bevestigen",
-        "Lang drukken (1,2 s): annuleren of dimmen",
-        "CHARGE: eerste druk kiest wattage, tweede druk verzendt",
-        "DISCH: eerste druk kiest wattage, tweede druk verzendt",
+        "Ring draaien: kies STATUS / AUTO / CHARGE / DISCH / DIM",
+        "Ring kort indrukken: uitvoeren of bevestigen",
+        "Ring lang indrukken (1,2 s): annuleren of dimmen",
+        "CHARGE: ring indrukken, wattage kiezen, ring opnieuw indrukken",
+        "DISCH: ring indrukken, wattage kiezen, ring opnieuw indrukken",
         "Na een opdracht: wacht op echte BAT; kies daarna AUTO en wacht op Mode 2",
     ]
     bullets(c, quick, M + 16, y - 52, W - 2 * M - 32, size=8.7, leading=11.5, gap=2.5, color=white, dot=GREEN)
@@ -1423,7 +1423,7 @@ def user_page_16(c: canvas.Canvas) -> None:
     source_y = y - 20
     sources = [
         ("Project en firmware", "github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening", "https://github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening"),
-        ("Installateurshandleiding", "GitHub: docs/gebruikershandleiding/installateurshandleiding", "https://github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening/blob/main/docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.2.pdf"),
+        ("Installateurshandleiding", "GitHub: docs/gebruikershandleiding/installateurshandleiding", "https://github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening/blob/main/docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.3.pdf"),
         ("Officiële M5Dial-documentatie", "docs.m5stack.com/en/core/M5Dial", "https://docs.m5stack.com/en/core/M5Dial"),
         ("3D-behuizing", "printables.com/model/992288-m5stack-dial-case/files", "https://www.printables.com/model/992288-m5stack-dial-case/files"),
         ("Sonnen release notes", "sonnen.de/rln-sb", "https://www.sonnen.de/rln-sb"),

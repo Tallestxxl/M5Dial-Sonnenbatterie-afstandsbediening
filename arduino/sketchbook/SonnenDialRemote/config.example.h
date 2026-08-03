@@ -11,7 +11,7 @@ static const uint16_t SONNEN_PORT = 80;
 static const char SONNEN_AUTH_HEADER[] = "Auth-Token";
 static const char SONNEN_AUTH_TOKEN[] = "";
 
-// Set to 1 to test display, encoder, button, dimming and sleep without Wi-Fi
+// Set to 1 to test the display, rotary/push control, dimming and sleep without Wi-Fi
 // or a sonnenBatterie. Keep this 0 for real operation.
 #define SONNEN_DEMO_MODE 0
 
