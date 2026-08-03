@@ -29,6 +29,34 @@
 #define SONNEN_ACTIVE_POWER_THRESHOLD_W 100
 #endif
 
+#ifndef SONNEN_COMMAND_VERIFY_DELAY_MS
+#define SONNEN_COMMAND_VERIFY_DELAY_MS 2000
+#endif
+
+#ifndef SONNEN_COMMAND_VERIFY_INTERVAL_MS
+#define SONNEN_COMMAND_VERIFY_INTERVAL_MS 2000
+#endif
+
+#ifndef SONNEN_COMMAND_VERIFY_TIMEOUT_MS
+#define SONNEN_COMMAND_VERIFY_TIMEOUT_MS 12000
+#endif
+
+#ifndef SONNEN_COMMAND_VERIFY_TOLERANCE_PERCENT
+#define SONNEN_COMMAND_VERIFY_TOLERANCE_PERCENT 20
+#endif
+
+#ifndef SONNEN_COMMAND_VERIFY_MIN_TOLERANCE_W
+#define SONNEN_COMMAND_VERIFY_MIN_TOLERANCE_W 25
+#endif
+
+#ifndef SONNEN_POST_COMMAND_REFRESH_MS
+#define SONNEN_POST_COMMAND_REFRESH_MS 5000
+#endif
+
+#ifndef SONNEN_POST_COMMAND_FAST_WINDOW_MS
+#define SONNEN_POST_COMMAND_FAST_WINDOW_MS 30000
+#endif
+
 #ifndef SONNEN_DIM_AFTER_MS
 #define SONNEN_DIM_AFTER_MS 20000
 #endif
@@ -95,6 +123,14 @@ struct ApiResult {
   String message = "";
 };
 
+struct CommandVerification {
+  bool active = false;
+  Action action = Action::Refresh;
+  int targetW = 0;
+  uint32_t startedMs = 0;
+  uint32_t nextPollMs = 0;
+};
+
 static constexpr int kActionCount = 5;
 static constexpr int kDialGroupOffsetY = -12;
 static constexpr uint32_t kLongPressMs = 1200;
@@ -113,7 +149,9 @@ static uint32_t lastInteractionMs = 0;
 static uint32_t lastRefreshMs = 0;
 static uint32_t lastSuccessfulRefreshMs = 0;
 static uint32_t stateStartedMs = 0;
+static uint32_t fastRefreshUntilMs = 0;
 static String statusMessage = "Starting";
+static CommandVerification verification;
 
 static uint16_t colBg;
 static uint16_t colPanel;
@@ -200,6 +238,9 @@ static bool batteryPowerIsActive() {
 }
 
 static uint32_t currentRefreshIntervalMs() {
+  if (fastRefreshUntilMs != 0 && static_cast<int32_t>(fastRefreshUntilMs - millis()) > 0) {
+    return SONNEN_POST_COMMAND_REFRESH_MS;
+  }
   if (!battery.valid || batteryPowerIsActive()) {
     return SONNEN_ACTIVE_REFRESH_MS;
   }
@@ -654,6 +695,111 @@ static bool refreshStatus(bool showBusy = true, bool releaseWiFi = true) {
   return true;
 }
 
+static long batteryWattsAsDisplayed() {
+  return -battery.batteryW;
+}
+
+static long expectedBatteryWatts() {
+  if (verification.action == Action::Charge) {
+    return verification.targetW;
+  }
+  if (verification.action == Action::Discharge) {
+    return -verification.targetW;
+  }
+  return 0;
+}
+
+static String verificationMessage() {
+  if (verification.action == Action::SelfConsumption) {
+    return "AUTO controleren";
+  }
+  return "Doel " + signedWatts(expectedBatteryWatts());
+}
+
+static bool verificationReachedTarget() {
+  if (!battery.valid) {
+    return false;
+  }
+  if (verification.action == Action::SelfConsumption) {
+    return battery.operatingMode == "2";
+  }
+
+  long expectedW = expectedBatteryWatts();
+  long actualW = batteryWattsAsDisplayed();
+  long differenceW = actualW - expectedW;
+  if (differenceW < 0) {
+    differenceW = -differenceW;
+  }
+
+  long magnitudeW = expectedW < 0 ? -expectedW : expectedW;
+  long toleranceW = magnitudeW * SONNEN_COMMAND_VERIFY_TOLERANCE_PERCENT / 100;
+  if (toleranceW < SONNEN_COMMAND_VERIFY_MIN_TOLERANCE_W) {
+    toleranceW = SONNEN_COMMAND_VERIFY_MIN_TOLERANCE_W;
+  }
+
+  bool manualModeActive = battery.operatingMode == "1";
+  bool directionMatches = expectedW == 0 || (expectedW > 0 ? actualW > 0 : actualW < 0);
+  return manualModeActive && directionMatches && differenceW <= toleranceW;
+}
+
+static void beginCommandVerification(Action action, int targetW = 0) {
+  uint32_t now = millis();
+  verification.active = true;
+  verification.action = action;
+  verification.targetW = targetW;
+  verification.startedMs = now;
+  verification.nextPollMs = now + SONNEN_COMMAND_VERIFY_DELAY_MS;
+  uiState = UiState::Busy;
+  statusMessage = verificationMessage();
+  stateStartedMs = now;
+  drawUi();
+}
+
+static void finishCommandVerification(bool reachedTarget) {
+  Action verifiedAction = verification.action;
+  verification.active = false;
+  releaseWiFiAfterRequest();
+  fastRefreshUntilMs = millis() + SONNEN_POST_COMMAND_FAST_WINDOW_MS;
+  uiState = UiState::Browsing;
+  if (reachedTarget) {
+    statusMessage = "Mode " + battery.operatingMode;
+  } else if (verifiedAction == Action::SelfConsumption) {
+    statusMessage = "AUTO niet bevestigd";
+  } else {
+    statusMessage = "Doel niet bereikt";
+  }
+  drawUi();
+}
+
+static void maintainCommandVerification() {
+  if (!verification.active) {
+    return;
+  }
+
+  uint32_t now = millis();
+  if (static_cast<int32_t>(now - verification.nextPollMs) < 0) {
+    return;
+  }
+
+  bool refreshed = refreshStatus(false, false);
+  now = millis();
+  if (refreshed && verificationReachedTarget()) {
+    finishCommandVerification(true);
+    return;
+  }
+
+  if (now - verification.startedMs >= SONNEN_COMMAND_VERIFY_TIMEOUT_MS) {
+    finishCommandVerification(false);
+    return;
+  }
+
+  uiState = UiState::Busy;
+  statusMessage = verificationMessage();
+  stateStartedMs = now;
+  verification.nextPollMs = now + SONNEN_COMMAND_VERIFY_INTERVAL_MS;
+  drawUi();
+}
+
 static String setpointPath(bool charge) {
   String path = charge ? SONNEN_CHARGE_SETPOINT_PATH : SONNEN_DISCHARGE_SETPOINT_PATH;
   if (!path.endsWith("/")) {
@@ -700,9 +846,7 @@ static bool putSelfConsumption() {
     return false;
   }
 
-  uiState = UiState::Browsing;
-  statusMessage = "Auto OK";
-  refreshStatus(false);
+  beginCommandVerification(Action::SelfConsumption);
   return true;
 }
 
@@ -760,9 +904,7 @@ static bool sendSetpoint(bool charge) {
     return false;
   }
 
-  uiState = UiState::Browsing;
-  statusMessage = String(charge ? "Charge " : "Disch ") + requestedPowerW + "W";
-  refreshStatus(false);
+  beginCommandVerification(charge ? Action::Charge : Action::Discharge, requestedPowerW);
   return true;
 }
 
@@ -897,7 +1039,7 @@ static void maintainPowerPolicy() {
 }
 
 static void maybeRefreshStatus() {
-  if (uiState == UiState::Busy || uiState == UiState::EditingSetpoint) {
+  if (verification.active || uiState == UiState::Busy || uiState == UiState::EditingSetpoint) {
     return;
   }
 
@@ -942,6 +1084,7 @@ void loop() {
   M5Dial.update();
   handleEncoder();
   handleButton();
+  maintainCommandVerification();
   maybeRefreshStatus();
   maintainPowerPolicy();
   delay(20);

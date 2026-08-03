@@ -13,6 +13,7 @@ Hardware eerst kopen? Zie [docs/sonnen-dial-hardware.md](../../../docs/sonnen-di
 - Auto-dim en optionele auto-poweroff voor batterijgebruik.
 - Wi-Fi gaat standaard na elke Sonnen-request uit voor lager energieverbruik.
 - Adaptieve status-refresh: sneller bij laden/ontladen, rustiger bij weinig batterijvermogen, en automatische retry na statusfouten.
+- Opdrachtverificatie: na `CHARGE`, `DISCH` of `AUTO` controleert de Dial enkele keren de echte status voordat hij de opdracht als bevestigd beschouwt.
 - Alle Sonnen-paden, HTTP-methodes, limieten, Wi-Fi en token zitten in `sonnen_config.h`.
 - Schrijfacties staan standaard uit met `SONNEN_ALLOW_WRITES 0`; status uitlezen kan dus veilig eerst getest worden.
 - `SONNEN_DEMO_MODE 1` test de UI zonder Wi-Fi of batterij.
@@ -33,6 +34,8 @@ De generator laat `SONNEN_ALLOW_WRITES` standaard op `0`. Zet writes pas aan wan
 Voor maximale batterijduur blijft `SONNEN_WIFI_OFF_AFTER_REQUEST` standaard `1`. Na een API-call of mislukte Wi-Fi-poging gaat de radio uit. Zet dit alleen op `0` als je liever sneller achter elkaar status/action calls doet dan energie bespaart.
 
 De status-refresh is adaptief: `SONNEN_ACTIVE_REFRESH_MS` geldt wanneer de batterij actief laadt of ontlaadt boven `SONNEN_ACTIVE_POWER_THRESHOLD_W`; `SONNEN_IDLE_REFRESH_MS` geldt bij weinig batterijvermogen. Als een statuscall faalt, probeert de firmware automatisch opnieuw na `SONNEN_ERROR_REFRESH_MS`, ook zonder aan de draaiknop te zitten.
+
+Na een schrijfopdracht verschijnt tijdelijk `Doel +...W`, `Doel -...W` of `AUTO controleren`. De eerste meting volgt standaard na 2 seconden en wordt om de 2 seconden herhaald, maximaal 12 seconden. Laden en ontladen zijn bevestigd wanneer `Mode 1` actief is en de werkelijk gemeten `BAT`-waarde binnen de controlemarge ligt; `AUTO` is bevestigd bij `Mode 2`. Alleen de werkelijk gemeten `BAT`-waarde wordt getoond. Na afloop blijft de status 30 seconden elke 5 seconden verversen. De instellingen beginnen met `SONNEN_COMMAND_VERIFY_` en `SONNEN_POST_COMMAND_`.
 
 Voor de eerste hardwaretest mag `SONNEN_DEMO_MODE` tijdelijk op `1`. Dan kun je scherm, encoder, knop en dimmen testen zonder Wi-Fi of Sonnenbatterie. Zet deze voor echte statusmetingen terug op `0`.
 

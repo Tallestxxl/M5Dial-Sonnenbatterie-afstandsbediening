@@ -75,6 +75,13 @@ static const char SONNEN_AUTH_TOKEN[] = {cpp_string(args.token)};
 #define SONNEN_IDLE_REFRESH_MS {args.idle_refresh_ms}
 #define SONNEN_ERROR_REFRESH_MS {args.error_refresh_ms}
 #define SONNEN_ACTIVE_POWER_THRESHOLD_W {args.active_power_threshold_w}
+#define SONNEN_COMMAND_VERIFY_DELAY_MS {args.command_verify_delay_ms}
+#define SONNEN_COMMAND_VERIFY_INTERVAL_MS {args.command_verify_interval_ms}
+#define SONNEN_COMMAND_VERIFY_TIMEOUT_MS {args.command_verify_timeout_ms}
+#define SONNEN_COMMAND_VERIFY_TOLERANCE_PERCENT {args.command_verify_tolerance_percent}
+#define SONNEN_COMMAND_VERIFY_MIN_TOLERANCE_W {args.command_verify_min_tolerance_w}
+#define SONNEN_POST_COMMAND_REFRESH_MS {args.post_command_refresh_ms}
+#define SONNEN_POST_COMMAND_FAST_WINDOW_MS {args.post_command_fast_window_ms}
 #define SONNEN_DIM_AFTER_MS {args.dim_after_ms}
 #define SONNEN_SLEEP_AFTER_MS {args.sleep_after_ms}
 #define SONNEN_ENABLE_POWER_OFF {1 if args.enable_power_off else 0}
@@ -224,6 +231,13 @@ def make_parser() -> argparse.ArgumentParser:
     config.add_argument("--idle-refresh-ms", type=int, default=60000)
     config.add_argument("--error-refresh-ms", type=int, default=20000)
     config.add_argument("--active-power-threshold-w", type=int, default=100)
+    config.add_argument("--command-verify-delay-ms", type=int, default=2000)
+    config.add_argument("--command-verify-interval-ms", type=int, default=2000)
+    config.add_argument("--command-verify-timeout-ms", type=int, default=12000)
+    config.add_argument("--command-verify-tolerance-percent", type=int, default=20)
+    config.add_argument("--command-verify-min-tolerance-w", type=int, default=25)
+    config.add_argument("--post-command-refresh-ms", type=int, default=5000)
+    config.add_argument("--post-command-fast-window-ms", type=int, default=30000)
     config.add_argument("--dim-after-ms", type=int, default=20000)
     config.add_argument("--sleep-after-ms", type=int, default=70000)
     config.add_argument("--enable-power-off", action=argparse.BooleanOptionalAction, default=False)

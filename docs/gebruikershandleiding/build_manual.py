@@ -19,8 +19,8 @@ from reportlab.pdfgen import canvas
 
 
 ROOT = Path(__file__).resolve().parents[2]
-USER_OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.1.pdf"
-INSTALLER_OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.0.pdf"
+USER_OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.2.pdf"
+INSTALLER_OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.1.pdf"
 FRONT_PHOTO = ROOT / "docs/images/m5dial-remote-status-photo.jpg"
 CASE_PHOTO = ROOT / "hardware/case/m5stack-dial-case-preview.webp"
 FONT_DIR = Path(reportlab.__file__).resolve().parent / "fonts"
@@ -545,7 +545,7 @@ def cover(c: canvas.Canvas) -> None:
     c.roundRect(48, 96, 230, 34, 7, fill=1, stroke=0)
     c.setFillColor(white)
     c.setFont("DV-Bold", 8.5)
-    c.drawString(62, 109, "Versie 1.1  |  3 augustus 2026")
+    c.drawString(62, 109, "Versie 1.2  |  3 augustus 2026")
     c.setFillColor(HexColor("#8FA0A4"))
     c.setFont("DV", 7.2)
     c.drawString(48, 58, "Voor firmwarecommit 50f31c3 en de huidige apparaatconfiguratie")
@@ -892,12 +892,12 @@ def page_9(c: canvas.Canvas) -> None:
     y -= 15
     label(c, "AUTO - normale regeling herstellen", M, y, color=BLUE)
     y -= 18
-    y = draw_flow(c, ["Draai naar AUTO", "Controleer AUTO", "Druk één keer", "Mode 2 verwacht"], M, y, W - 2 * M, accent=BLUE)
-    y = paragraph(c, "AUTO stuurt onmiddellijk een schrijfcommando. Anders dan CHARGE en DISCH is er geen tweede bevestiging. De batterij gaat terug naar OperatingMode 2: automatische zelfverbruiksregeling.", M, y, W - 2 * M, size=9.2, leading=13)
+    y = draw_flow(c, ["Draai naar AUTO", "Druk één keer", "AUTO controleren", "Mode 2 bevestigd"], M, y, W - 2 * M, accent=BLUE)
+    y = paragraph(c, "AUTO stuurt onmiddellijk een schrijfcommando. Daarna leest de M5Dial de batterij na 2 seconden en vervolgens elke 2 seconden opnieuw uit, maximaal 12 seconden lang. De controle is geslaagd zodra OperatingMode 2 wordt gemeten: automatische zelfverbruiksregeling.", M, y, W - 2 * M, size=9.0, leading=12.7)
     y -= 12
     y = callout(c, "Wanneer AUTO gebruiken?", "Na iedere handmatige laad- of ontlaadactie, wanneer het ingestelde vermogen niet meer nodig is, en wanneer je onzeker bent welke handmatige modus actief is.", M, y, W - 2 * M, fill=PALE_GREEN, accent=GREEN, body_size=9)
     label(c, "Wat je na AUTO controleert", M, y - 2, color=ORANGE)
-    bullets(c, ["Bovenaan verschijnt kort Auto mode of Auto OK.", "Na de daaropvolgende statuscall staat gewoonlijk Mode 2.", "BAT hoeft niet direct 0 W te worden; AUTO hervat de normale regeling en die kan zelf laden of ontladen.", "Reageert de batterij niet, wacht 10 seconden en kies STATUS. Gebruik zo nodig het officiële Sonnen-dashboard."], M, y - 20, W - 2 * M, size=8.8, leading=12, gap=4)
+    bullets(c, ["Bovenaan verschijnt eerst AUTO controleren.", "Bij een geslaagde controle verschijnt Mode 2.", "BAT blijft altijd de werkelijk gemeten waarde; AUTO kan zelf laden of ontladen en hoeft BAT dus niet op 0 W te zetten.", "Verschijnt AUTO niet bevestigd, gebruik dan het officiële Sonnen-dashboard om AUTO te herstellen en controleer daarna STATUS."], M, y - 20, W - 2 * M, size=8.7, leading=11.8, gap=4)
     c.showPage()
 
 
@@ -912,7 +912,7 @@ def page_10(c: canvas.Canvas) -> None:
             ("Stel het vermogen in", "Draai in stappen van 100 W. Het bereik loopt van 0 tot 3600 W; de startwaarde is doorgaans de laatst gekozen waarde."),
             ("Controleer nogmaals", "Lees het grote getal en controleer dat bovenaan Charge W staat."),
             ("Bevestig", "Druk kort. Nu schakelt de firmware naar handmatige modus en stuurt zij het laadsetpoint."),
-            ("Wacht en controleer", "Wacht 5 tot 10 seconden en kies zo nodig STATUS. BAT moet positief worden, bijvoorbeeld +500W."),
+            ("Laat de automatische controle lopen", "Bovenaan staat Doel +500W. De M5Dial leest na 2 seconden en daarna elke 2 seconden de echte status; BAT moet positief worden."),
             ("Sluit af met AUTO", "Wanneer handmatig laden niet meer nodig is: selecteer AUTO en druk één keer."),
         ],
         M,
@@ -924,8 +924,8 @@ def page_10(c: canvas.Canvas) -> None:
     y = callout(c, "Annuleren vóór verzenden", "Houd de knop minimaal 1,2 seconde ingedrukt terwijl het wattage zichtbaar is. De tekst Cancelled verschijnt en er wordt geen setpoint verstuurd.", M, y, W - 2 * M, fill=PALE_BLUE, accent=BLUE, body_size=8.5)
     label(c, "Verwachte schermreactie", M, y - 2, color=GREEN)
     y -= 20
-    y = draw_flow(c, ["CHARGE", "500 W", "Charging / WORKING", "BAT +500W", "AUTO"], M, y, W - 2 * M, accent=GREEN)
-    paragraph(c, "De werkelijke BAT-waarde kan afwijken door SOC, vermogenslimieten, temperatuur, reserve-instellingen, PV en het eigen energiemanagement van de batterij.", M, y, W - 2 * M, size=8.3, leading=11.5, color=MUTED)
+    y = draw_flow(c, ["CHARGE", "500 W", "Doel +500W", "echte BAT +...W", "AUTO"], M, y, W - 2 * M, accent=GREEN)
+    paragraph(c, "De controle duurt maximaal 12 seconden. Doel niet bereikt betekent dat het gemeten vermogen buiten de controlemarge bleef. De werkelijke BAT-waarde kan afwijken door SOC, vermogenslimieten, temperatuur, reserve, PV en het energiemanagement van de batterij.", M, y, W - 2 * M, size=8.1, leading=11.1, color=MUTED)
     c.showPage()
 
 
@@ -940,7 +940,7 @@ def page_11(c: canvas.Canvas) -> None:
             ("Stel het vermogen in", "Draai in stappen van 100 W, bij een eerste test bijvoorbeeld naar 100 W of 500 W."),
             ("Controleer nogmaals", "Lees het wattage en controleer dat bovenaan Disch W staat."),
             ("Bevestig", "Druk kort. De firmware zet de batterij in handmatige modus en stuurt het ontlaadsetpoint."),
-            ("Wacht en controleer", "Wacht 5 tot 10 seconden. BAT moet negatief worden, bijvoorbeeld -500W."),
+            ("Laat de automatische controle lopen", "Bovenaan staat Doel -500W. De M5Dial leest na 2 seconden en daarna elke 2 seconden de echte status; BAT moet negatief worden."),
             ("Sluit af met AUTO", "Selecteer AUTO en druk één keer om de normale zelfverbruiksregeling te herstellen."),
         ],
         M,
@@ -952,8 +952,8 @@ def page_11(c: canvas.Canvas) -> None:
     y = callout(c, "Annuleren vóór verzenden", "Houd de knop minimaal 1,2 seconde ingedrukt in de wattagekeuze. Bij Cancelled is geen ontlaadsetpoint verstuurd.", M, y, W - 2 * M, fill=PALE_BLUE, accent=BLUE, body_size=8.5)
     label(c, "Verwachte schermreactie", M, y - 2, color=BLUE)
     y -= 20
-    y = draw_flow(c, ["DISCH", "500 W", "Discharging", "BAT -500W", "AUTO"], M, y, W - 2 * M, accent=BLUE)
-    paragraph(c, "Wanneer de woning minder vermogen vraagt dan de ingestelde ontlading, kan een deel naar het net gaan. Controleer daarom ook GRID en kies geen onnodig hoog vermogen.", M, y, W - 2 * M, size=8.3, leading=11.5, color=MUTED)
+    y = draw_flow(c, ["DISCH", "500 W", "Doel -500W", "echte BAT -...W", "AUTO"], M, y, W - 2 * M, accent=BLUE)
+    paragraph(c, "De controle duurt maximaal 12 seconden. Doel niet bereikt betekent dat het gemeten vermogen buiten de controlemarge bleef. Wanneer de woning minder vraagt dan de ingestelde ontlading, kan een deel naar het net gaan; controleer daarom ook GRID.", M, y, W - 2 * M, size=8.1, leading=11.1, color=MUTED)
     c.showPage()
 
 
@@ -963,12 +963,13 @@ def page_12(c: canvas.Canvas) -> None:
     y = paragraph(c, "De huidige firmware praat rechtstreeks met het lokale IP-adres van de Sonnenbatterie. De M5Dial moet daarom op een wifi-netwerk zitten dat dit adres kan bereiken.", M, y, W - 2 * M, size=9.5, leading=13.5)
     y -= 10
     rows = [
-        ["Actief laden/ontladen", "Elke 10 s", "Als |BAT| ten minste 100 W is."],
-        ["Rustig/idle", "Elke 60 s", "Als de batterij minder dan 100 W doet."],
+        ["Na een opdracht", "Na 2 s, dan elke 2 s", "Maximaal 12 s; controleert echte BAT of Mode 2."],
+        ["Korte nacontrole", "Elke 5 s, 30 s lang", "Volgt het verdere stabiliseren van de batterij."],
+        ["Normaal actief", "Elke 10 s", "Als |BAT| ten minste 100 W is."],
+        ["Normaal rustig", "Elke 60 s", "Als de batterij minder dan 100 W doet."],
         ["Na fout", "Elke 20 s", "Automatische nieuwe poging zonder draaien."],
-        ["Handmatig STATUS", "Direct", "Zodra je STATUS selecteert en kort drukt."],
     ]
-    y = draw_table(c, ["Situatie", "Interval", "Uitleg"], rows, M, y, [155, 90, W - 2 * M - 245], font_size=7.8)
+    y = draw_table(c, ["Situatie", "Interval", "Uitleg"], rows, M, y, [142, 112, W - 2 * M - 254], font_size=7.25, row_pad=4.2)
     label(c, "Netwerkvoorwaarden", M, y - 2, color=GREEN)
     y = bullets(c, ["Alleen 2,4 GHz wifi; een gemengd 2,4/5 GHz netwerk werkt meestal zolang 2,4 GHz beschikbaar is.", "Wifi-naam en wachtwoord zijn in de firmware vastgelegd. Bij een nieuwe router is opnieuw configureren en uploaden nodig.", "Reserveer bij voorkeur een vast DHCP-adres voor de Sonnenbatterie, zodat het lokale IP niet verandert.", "Een gastnetwerk, client isolation of firewallregel kan lokaal verkeer blokkeren.", "Internet is niet nodig voor de lokale API-call, maar de Sonnenbatterie kan internet wel nodig hebben voor eigen diensten en support."], M, y - 20, W - 2 * M, size=8.5, leading=11.6, gap=3)
     callout(c, "Buiten het thuisnetwerk", "De M5Dial bevat geen Tailscale-client en gebruikt momenteel geen Home Assistant-proxy. Op een willekeurig wifi-netwerk kan hij de lokale Sonnenbatterie dus niet bereiken, tenzij dat netwerk zelf een veilige route naar het thuis-LAN aanbiedt.", M, 139, W - 2 * M, fill=PALE_RED, accent=RED, body_size=8.5)
@@ -985,6 +986,10 @@ def page_13(c: canvas.Canvas) -> None:
         ["Wi-Fi", "Bezig verbinding te maken.", "Normaal kort zichtbaar."],
         ["Mode 2", "AUTO/zelfverbruik actief.", "Normale toestand na AUTO."],
         ["Mode 1", "Handmatige regeling actief.", "Controleer of laden/ontladen bewust is gekozen."],
+        ["Doel +...W / -...W", "De opdracht wordt gecontroleerd.", "Wacht; BAT toont ondertussen de echt gemeten waarde."],
+        ["AUTO controleren", "Terugkeer naar AUTO wordt gecontroleerd.", "Wacht tot Mode 2 verschijnt."],
+        ["Doel niet bereikt", "BAT bleef buiten de controlemarge.", "Controleer limieten en herstel zo nodig AUTO."],
+        ["AUTO niet bevestigd", "Mode 2 kwam niet binnen 12 s terug.", "Herstel AUTO via het officiële dashboard."],
         ["Wi-Fi timeout", "Geen verbinding binnen 9 s.", "Controleer SSID, wachtwoord, bereik en 2,4 GHz."],
         ["HTTP -1 / begin failed", "Batterijadres niet bereikbaar.", "Controleer IP, poort, LAN en firewall."],
         ["HTTP 401 / 403", "Authenticatie geweigerd.", "Controleer API-token en rechten."],
@@ -995,7 +1000,7 @@ def page_13(c: canvas.Canvas) -> None:
         ["Cancelled", "Wattagekeuze of fout is geannuleerd.", "Geen setpoint verzonden als je nog in de keuze zat."],
         ["Dimmed", "Scherm is handmatig gedimd.", "Draai één klik om terug te keren."],
     ]
-    draw_table(c, ["Melding", "Betekenis", "Actie"], rows, M, y, [110, 162, W - 2 * M - 272], font_size=6.85, row_pad=4.5)
+    draw_table(c, ["Melding", "Betekenis", "Actie"], rows, M, y, [116, 158, W - 2 * M - 274], font_size=6.2, row_pad=3.5)
     c.showPage()
 
 
@@ -1004,7 +1009,7 @@ def page_14(c: canvas.Canvas) -> None:
     issues = [
         ("Scherm is zwart of erg donker", ["Draai één klik; de firmware dimt na 2 minuten.", "Controleer USB-C of de accuschakelaar.", "Trek USB los, wacht 5 seconden en sluit opnieuw aan.", "Probeer een andere 5 V kabel of adapter."]),
         ("Percentage loopt achter", ["Bij actief batterijvermogen komt normaal elke 10 seconden een update; in rust elke 60 seconden.", "Kies STATUS voor een directe uitlezing.", "Controleer wifi als Reading of een foutmelding blijft staan."]),
-        ("Laad- of ontlaadopdracht lijkt niets te doen", ["Wacht 5 tot 10 seconden en kies STATUS.", "Controleer Mode 1 en het teken van BAT.", "De batterij kan begrenzen door SOC, temperatuur, reserve of systeemlimieten.", "Zet bij twijfel AUTO en controleer via het Sonnen-dashboard."]),
+        ("Laad- of ontlaadopdracht lijkt niets te doen", ["Laat Doel +...W of Doel -...W maximaal 12 seconden controleren.", "BAT toont tijdens de controle uitsluitend de echt gemeten waarde.", "Doel niet bereikt kan komen door SOC, temperatuur, reserve of systeemlimieten.", "Zet bij twijfel AUTO en controleer via het Sonnen-dashboard."]),
         ("Steeds Wi-Fi timeout", ["Controleer of het ingestelde wifi nog bestaat en 2,4 GHz aanbiedt.", "Plaats de Dial dichter bij de router.", "Gebruik geen geïsoleerd gastnetwerk.", "Bij veranderd SSID of wachtwoord moet de firmware opnieuw worden geconfigureerd."]),
     ]
     x_positions = [M, W / 2 + 6]
@@ -1089,7 +1094,7 @@ def installer_cover(c: canvas.Canvas) -> None:
     c.roundRect(48, 103, 230, 34, 7, fill=1, stroke=0)
     c.setFillColor(white)
     c.setFont("DV-Bold", 8.5)
-    c.drawString(62, 116, "Versie 1.0  |  3 augustus 2026")
+    c.drawString(62, 116, "Versie 1.1  |  3 augustus 2026")
     c.setFillColor(HexColor("#8FA0A4"))
     c.setFont("DV", 7.2)
     c.drawString(48, 63, "Voor firmwarecommit 50f31c3 en de huidige apparaatconfiguratie")
@@ -1241,7 +1246,7 @@ def installer_page_5(c: canvas.Canvas) -> None:
         ("Compileer vóór uploaden", "Stop bij fouten; upload alleen een geslaagde build."),
         ("Kies de gevonden poort", "Op macOS lijkt die meestal op /dev/cu.usbmodemXXXX."),
         ("Wacht op de reset", "Na een geslaagde upload start de M5Dial opnieuw en leest hij de status."),
-        ("Test STATUS, 100 W en AUTO", "Controleer eerst lezen, daarna één lage schrijftest en tenslotte de terugkeer naar Mode 2."),
+        ("Test STATUS, 100 W en AUTO", "Controleer eerst lezen, daarna de automatische doelcontrole en tenslotte de bevestigde terugkeer naar Mode 2."),
     ], M, y, W - 2 * M, size=8.2, gap=6)
     y = callout(c, "Zwart scherm na upload", "Trek USB-C los, wacht 5 seconden en sluit opnieuw aan. Verschijnt nog niets, probeer een andere kabel/poort en upload opnieuw. Een gedimd scherm wordt wakker door één klik te draaien.", M, y, W - 2 * M, fill=PALE_ORANGE, accent=ORANGE, body_size=8.5)
     label(c, "Fabrieksdemo terugzetten", M, y - 2, color=BLUE)
@@ -1266,18 +1271,18 @@ def installer_page_6(c: canvas.Canvas) -> None:
     steps = [
         ("Leg de uitgangssituatie vast", "Noteer SOC, Mode en BAT. Controleer dezelfde waarden in het officiële Sonnen-dashboard."),
         ("Test STATUS", "Kies STATUS en druk kort. De waarden moeten binnen ongeveer 5 tot 15 seconden actueel worden."),
-        ("Test laden met 100 W", "Kies CHARGE, stel 100 W in en bevestig. Wacht 5 tot 10 seconden; verwacht Mode 1 en BAT ongeveer +100 W."),
-        ("Herstel AUTO", "Kies AUTO en bevestig. Wacht opnieuw en controleer dat boven in het scherm Mode 2 verschijnt."),
-        ("Test ontladen met 100 W", "Kies DISCH, stel 100 W in en bevestig. Verwacht Mode 1 en BAT ongeveer -100 W, voor zover de batterij dit toestaat."),
-        ("Eindig opnieuw met AUTO", "Bevestig AUTO, controleer Mode 2 en vergelijk het normale gedrag met het Sonnen-dashboard."),
+        ("Test laden met 100 W", "Kies CHARGE, stel 100 W in en bevestig. Verwacht Doel +100W, Mode 1 en een positief gemeten BAT-vermogen."),
+        ("Herstel AUTO", "Kies AUTO en bevestig. Verwacht AUTO controleren en daarna Mode 2."),
+        ("Test ontladen met 100 W", "Kies DISCH, stel 100 W in en bevestig. Verwacht Doel -100W, Mode 1 en een negatief gemeten BAT-vermogen, voor zover toegestaan."),
+        ("Eindig opnieuw met AUTO", "Bevestig AUTO, laat Mode 2 automatisch verifiëren en vergelijk het normale gedrag met het Sonnen-dashboard."),
     ]
     y = numbered_steps(c, steps, M, y, W - 2 * M, size=8.1, gap=6)
     label(c, "Acceptatiepunten", M, y - 1, color=GREEN)
     rows = [
         ["Status", "Echt SOC en actuele vermogenswaarden; geen blijvende foutmelding."],
-        ["Laden", "Mode 1; BAT positief; reactie na enkele seconden."],
-        ["AUTO na laden", "Mode 2 zichtbaar boven in het scherm."],
-        ["Ontladen", "Mode 1; BAT negatief; reactie na enkele seconden."],
+        ["Laden", "Doel +100W; Mode 1; echt gemeten BAT positief."],
+        ["AUTO na laden", "AUTO controleren eindigt met Mode 2."],
+        ["Ontladen", "Doel -100W; Mode 1; echt gemeten BAT negatief."],
         ["Eindtoestand", "Mode 2; Sonnenbatterie gedraagt zich weer volgens zelfverbruik."],
     ]
     y = draw_table(c, ["Controle", "Geslaagd wanneer"], rows, M, y - 18, [120, W - 2 * M - 120], font_size=7.5, row_pad=4.6)
@@ -1292,9 +1297,11 @@ def installer_page_7(c: canvas.Canvas) -> None:
     y -= 4
     label(c, "Huidige apparaatinstellingen", M, y, color=ORANGE)
     rows = [
-        ["Firmware", "Commit 50f31c3"],
         ["Schrijfacties", "Ingeschakeld"],
         ["Wattage", "0-3600 W, stappen van 100 W, start 500 W"],
+        ["Opdrachtcontrole", "Na 2 s, daarna elke 2 s, maximaal 12 s"],
+        ["Controlemarge", "20% van doel, minimaal 25 W"],
+        ["Korte nacontrole", "Elke 5 s gedurende 30 s"],
         ["Statusrefresh", "10 s actief, 60 s rustig, 20 s na fout"],
         ["Actief-drempel", "|BAT| vanaf 100 W"],
         ["Scherm", "Helderheid 230; dim 55 na 120 s"],
@@ -1303,7 +1310,7 @@ def installer_page_7(c: canvas.Canvas) -> None:
         ["Wifi", "2,4 GHz; radio uit na elke request"],
         ["Timeouts", "Wifi 9 s; HTTP 4,5 s"],
     ]
-    y = draw_table(c, ["Onderdeel", "Instelling"], rows, M, y - 18, [145, W - 2 * M - 145], font_size=7.7, row_pad=4.8)
+    y = draw_table(c, ["Onderdeel", "Instelling"], rows, M, y - 18, [145, W - 2 * M - 145], font_size=7.25, row_pad=4.0)
     label(c, "M5Dial hardware", M, y - 1, color=BLUE)
     rows2 = [
         ["Model", "M5Stack Dial / SKU K130 / ESP32-S3"],
@@ -1344,7 +1351,8 @@ def installer_page_8(c: canvas.Canvas) -> None:
         ["Wifi timeout", "2,4 GHz, SSID, wachtwoord, bereik en gastnetwerkisolatie controleren."],
         ["HTTP 401 / 403", "API-token en lokale API-rechten controleren."],
         ["Geen actuele status", "Lokaal batterijadres en netwerkroute testen met sonnen-probe status."],
-        ["Schrijfopdracht faalt", "Niet herhalen; AUTO via officieel dashboard; batterijlimieten controleren."],
+        ["Doel niet bereikt", "Echte BAT controleren; limieten nagaan; AUTO herstellen; niet herhalen."],
+        ["AUTO niet bevestigd", "AUTO via officieel dashboard herstellen en Mode 2 controleren."],
         ["Verkeerd gedrag", "STATUS, daarna AUTO; Mode 2 controleren; zo nodig firmware opnieuw uploaden."],
     ]
     y = draw_table(c, ["Probleem", "Eerste actie"], rows, M, y - 18, [125, W - 2 * M - 125], font_size=7.25, row_pad=4.6)
@@ -1388,7 +1396,7 @@ def user_page_16(c: canvas.Canvas) -> None:
         "Lang drukken (1,2 s): annuleren of dimmen",
         "CHARGE: eerste druk kiest wattage, tweede druk verzendt",
         "DISCH: eerste druk kiest wattage, tweede druk verzendt",
-        "Na handmatig gebruik: AUTO kiezen, drukken en bovenin Mode 2 controleren",
+        "Na een opdracht: wacht op echte BAT; kies daarna AUTO en wacht op Mode 2",
     ]
     bullets(c, quick, M + 16, y - 52, W - 2 * M - 32, size=8.7, leading=11.5, gap=2.5, color=white, dot=GREEN)
     y -= 198
@@ -1415,7 +1423,7 @@ def user_page_16(c: canvas.Canvas) -> None:
     source_y = y - 20
     sources = [
         ("Project en firmware", "github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening", "https://github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening"),
-        ("Installateurshandleiding", "GitHub: docs/gebruikershandleiding/installateurshandleiding", "https://github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening/blob/main/docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.0.pdf"),
+        ("Installateurshandleiding", "GitHub: docs/gebruikershandleiding/installateurshandleiding", "https://github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening/blob/main/docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.1.pdf"),
         ("Officiële M5Dial-documentatie", "docs.m5stack.com/en/core/M5Dial", "https://docs.m5stack.com/en/core/M5Dial"),
         ("3D-behuizing", "printables.com/model/992288-m5stack-dial-case/files", "https://www.printables.com/model/992288-m5stack-dial-case/files"),
         ("Sonnen release notes", "sonnen.de/rln-sb", "https://www.sonnen.de/rln-sb"),

@@ -77,6 +77,13 @@ class SonnenProbeTests(unittest.TestCase):
         self.assertIn("#define SONNEN_IDLE_REFRESH_MS 60000", config)
         self.assertIn("#define SONNEN_ERROR_REFRESH_MS 20000", config)
         self.assertIn("#define SONNEN_ACTIVE_POWER_THRESHOLD_W 100", config)
+        self.assertIn("#define SONNEN_COMMAND_VERIFY_DELAY_MS 2000", config)
+        self.assertIn("#define SONNEN_COMMAND_VERIFY_INTERVAL_MS 2000", config)
+        self.assertIn("#define SONNEN_COMMAND_VERIFY_TIMEOUT_MS 12000", config)
+        self.assertIn("#define SONNEN_COMMAND_VERIFY_TOLERANCE_PERCENT 20", config)
+        self.assertIn("#define SONNEN_COMMAND_VERIFY_MIN_TOLERANCE_W 25", config)
+        self.assertIn("#define SONNEN_POST_COMMAND_REFRESH_MS 5000", config)
+        self.assertIn("#define SONNEN_POST_COMMAND_FAST_WINDOW_MS 30000", config)
 
     def test_make_config_refuses_to_overwrite_without_force(self) -> None:
         parser = PROBE["make_parser"]()

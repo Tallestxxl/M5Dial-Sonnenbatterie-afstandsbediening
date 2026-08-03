@@ -15,6 +15,7 @@ Deze repository bevat firmware, hulpmiddelen en hardwarebestanden voor een compa
 - menu met `STATUS`, `AUTO`, `CHARGE`, `DISCH` en `DIM`
 - laad- en ontlaadsetpoints tot 3,6 kW
 - bewuste bevestiging voordat er een schrijfcommando naar de batterij gaat
+- automatische controle van het werkelijk gemeten batterijvermogen en de terugkeer naar `Mode 2`
 - adaptieve refresh: sneller bij actief laden/ontladen, rustiger bij weinig batterijvermogen
 - automatische terugval naar veilige configuratiebestanden zonder secrets
 - testscript voor end-to-end controle van laden, ontladen en terug naar auto
@@ -54,6 +55,8 @@ Belangrijk gedrag:
 - `DISCH`: handmatig ontladen met gekozen wattage
 - `BAT +1000W`: batterij laadt
 - `BAT -1000W`: batterij ontlaadt
+
+Na `CHARGE` of `DISCH` toont de Dial tijdelijk het doel en controleert hij na 2 seconden en daarna elke 2 seconden of `Mode 1` actief is en de echte `BAT`-waarde het doel heeft bereikt, maximaal 12 seconden. Na `AUTO` controleert hij op dezelfde manier of `Mode 2` werkelijk is teruggekeerd. Daarna volgt gedurende 30 seconden iedere 5 seconden een statusupdate.
 
 ## Configuratie
 
@@ -137,8 +140,8 @@ Controleer de actuele licentievoorwaarden op Printables voordat je de STL-bestan
 
 ## Documentatie
 
-- [Gebruikershandleiding v1.1 (PDF)](docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.1.pdf)
-- [Installateurshandleiding v1.0 (PDF)](docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.0.pdf)
+- [Gebruikershandleiding v1.2 (PDF)](docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.2.pdf)
+- [Installateurshandleiding v1.1 (PDF)](docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.1.pdf)
 - [Handleidingbron en bouwinstructies](docs/gebruikershandleiding/README.md)
 - [Firmware README](arduino/sketchbook/SonnenDialRemote/README.md)
 - [Hardware checklist](docs/sonnen-dial-hardware.md)
