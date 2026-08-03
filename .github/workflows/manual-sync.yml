@@ -43,7 +43,7 @@ jobs:
         run: scripts/build-manual
 
       - name: Verify generated PDF is current
-        run: git diff --exit-code -- docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-actueel.pdf
+        run: git diff --exit-code -- docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.1.pdf docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.0.pdf
 
       - name: Require manual review for firmware changes
         env:

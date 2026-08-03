@@ -1,10 +1,11 @@
-# Gebruikershandleiding
+# Handleidingen
 
-De actuele handleiding staat hier:
+De gepubliceerde handleidingen staan hier:
 
-[M5Dial-Sonnenbatterie-gebruikershandleiding-actueel.pdf](M5Dial-Sonnenbatterie-gebruikershandleiding-actueel.pdf)
+- [Gebruikershandleiding v1.1](M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.1.pdf)
+- [Installateurshandleiding v1.0](M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.0.pdf)
 
-De PDF wordt gegenereerd uit `build_manual.py`. De bron gebruikt de projectfoto's uit `docs/images/` en `hardware/case/` en bevat geen wifi-wachtwoorden, API-tokens of andere private configuratie.
+Beide PDF's worden gegenereerd uit `build_manual.py`. De bron gebruikt de projectfoto's uit `docs/images/` en `hardware/case/` en bevat geen wifi-wachtwoorden, API-tokens of andere private configuratie.
 
 ## Opnieuw bouwen
 
@@ -23,11 +24,12 @@ scripts/build-manual
 De generator schrijft rechtstreeks naar:
 
 ```text
-docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-actueel.pdf
+docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.1.pdf
+docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.0.pdf
 ```
 
 ## Bij firmwarewijzigingen
 
-Wijzigt zichtbaar gedrag, bediening, teksten, limieten, timing, netwerkgedrag, voeding of veiligheid, pas dan ook `build_manual.py` aan en voer `scripts/build-manual` uit. Commit de gewijzigde bron en PDF samen met de firmware.
+Wijzigt zichtbaar gedrag, bediening, teksten, limieten, timing, netwerkgedrag, voeding, installatie of veiligheid, pas dan ook `build_manual.py` aan en voer `scripts/build-manual` uit. Commit de gewijzigde bron en beide PDF's samen met de firmware.
 
-De GitHub Actions-controle bouwt de PDF opnieuw en controleert dat de vastgelegde PDF actueel is. Als de firmware wijzigt zonder een wijziging aan de handleidingbron, meldt de workflow dat de documentatie niet aantoonbaar is beoordeeld.
+De GitHub Actions-controle bouwt beide PDF's opnieuw en controleert dat de vastgelegde versies actueel zijn. Als de firmware wijzigt zonder een wijziging aan de handleidingbron, meldt de workflow dat de documentatie niet aantoonbaar is beoordeeld. Verhoog bij een nieuwe gepubliceerde documentversie ook de bestandsnaam, het versienummer op de omslag en de links in deze README en de repository-README.

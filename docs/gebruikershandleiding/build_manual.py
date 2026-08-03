@@ -19,7 +19,8 @@ from reportlab.pdfgen import canvas
 
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-actueel.pdf"
+USER_OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.1.pdf"
+INSTALLER_OUT = ROOT / "docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.0.pdf"
 FRONT_PHOTO = ROOT / "docs/images/m5dial-remote-status-photo.jpg"
 CASE_PHOTO = ROOT / "hardware/case/m5stack-dial-case-preview.webp"
 FONT_DIR = Path(reportlab.__file__).resolve().parent / "fonts"
@@ -100,7 +101,14 @@ def label(c: canvas.Canvas, text: str, x: float, y: float, *, color=ORANGE) -> N
     c.drawString(x, y, text.upper())
 
 
-def section_title(c: canvas.Canvas, section: str, title: str, page: int) -> float:
+def section_title(
+    c: canvas.Canvas,
+    section: str,
+    title: str,
+    page: int,
+    *,
+    document_name: str = "Gebruikershandleiding",
+) -> float:
     c.setFillColor(LIGHT)
     c.rect(0, 0, W, H, fill=1, stroke=0)
     c.setFillColor(DARK)
@@ -113,17 +121,17 @@ def section_title(c: canvas.Canvas, section: str, title: str, page: int) -> floa
     c.setFont("DV-Bold", 22)
     c.setFillColor(white)
     c.drawString(M, H - 60, title)
-    footer(c, page)
+    footer(c, page, document_name)
     return H - 116
 
 
-def footer(c: canvas.Canvas, page: int) -> None:
+def footer(c: canvas.Canvas, page: int, document_name: str = "Gebruikershandleiding") -> None:
     c.setStrokeColor(LINE)
     c.setLineWidth(0.6)
     c.line(M, 31, W - M, 31)
     c.setFillColor(MUTED)
     c.setFont("DV", 6.7)
-    c.drawString(M, 18, "M5Dial Sonnenbatterie-afstandsbediening | Gebruikershandleiding")
+    c.drawString(M, 18, f"M5Dial Sonnenbatterie-afstandsbediening | {document_name}")
     c.drawRightString(W - M, 18, f"{page}")
 
 
@@ -537,7 +545,7 @@ def cover(c: canvas.Canvas) -> None:
     c.roundRect(48, 96, 230, 34, 7, fill=1, stroke=0)
     c.setFillColor(white)
     c.setFont("DV-Bold", 8.5)
-    c.drawString(62, 109, "Versie 1.0  |  2 augustus 2026")
+    c.drawString(62, 109, "Versie 1.1  |  3 augustus 2026")
     c.setFillColor(HexColor("#8FA0A4"))
     c.setFont("DV", 7.2)
     c.drawString(48, 58, "Voor firmwarecommit 50f31c3 en de huidige apparaatconfiguratie")
@@ -549,9 +557,9 @@ def page_2(c: canvas.Canvas) -> None:
     y = section_title(c, "Start", "Over deze handleiding", 2)
     y = paragraph(
         c,
-        "Deze handleiding beschrijft het apparaat zoals het nu is opgebouwd en geprogrammeerd. "
-        "Dagelijks gebruik kan volledig zonder computer. Een computer is alleen nodig voor een nieuw "
-        "wifi-netwerk, een ander API-adres, een firmware-update of herstel van de fabrieksdemo.",
+        "Deze handleiding beschrijft het dagelijkse gebruik van het apparaat zoals het nu is opgebouwd en "
+        "geprogrammeerd. Dagelijks gebruik kan volledig zonder computer. Configuratie, firmware-updates, "
+        "technisch onderhoud en herstel staan in de afzonderlijke installateurshandleiding.",
         M,
         y,
         W - 2 * M,
@@ -563,7 +571,8 @@ def page_2(c: canvas.Canvas) -> None:
         c,
         "Belangrijkste regel",
         "Na handmatig laden of ontladen zet je de batterij weer op AUTO. AUTO herstelt de normale "
-        "zelfverbruiksregeling van de Sonnenbatterie.",
+        "zelfverbruiksregeling van de Sonnenbatterie en zet haar terug in Mode 2. Boven in het scherm moet "
+        "daarna 'Mode 2' zichtbaar zijn.",
         M,
         y,
         W - 2 * M,
@@ -585,11 +594,8 @@ def page_2(c: canvas.Canvas) -> None:
         ("Wifi, bereik en automatisch verversen", "12"),
         ("Meldingen en foutcodes", "13"),
         ("Problemen oplossen", "14"),
-        ("Accu en energieverbruik", "15"),
-        ("Wifi en API configureren", "16"),
-        ("Firmware installeren en herstellen", "17"),
-        ("Onderhoud en technische gegevens", "18"),
-        ("Snelle bedieningskaart en bronnen", "19"),
+        ("Voeding van de M5Dial", "15"),
+        ("Snelle bedieningskaart en bronnen", "16"),
     ]
     ty = y - 28
     for i, (name, number) in enumerate(toc):
@@ -716,7 +722,7 @@ def page_5(c: canvas.Canvas) -> None:
     y = draw_power_diagram(c, M, y, W - 2 * M)
     rows = [
         ["USB-C", "5 V DC", "Aanbevolen voor vaste voeding en uploaden. Gebruik een degelijke 5 V adapter en kabel."],
-        ["Witte accuplug", "1S lithium, 3,7 V nominaal", "Alleen 1,25 mm 2-polig met juiste polariteit. Gebruik bij voorkeur een beveiligd pakket."],
+        ["Witte accuplug", "1S lithium, 3,7 V / 500 mAh", "De ingebouwde M5Dial-accu. Alleen 1,25 mm 2-polig met juiste polariteit."],
         ["Groene klem", "6-36 V DC", "Volg + en - exact. Een 2S/7,4 V pakket met BMS kan hier voeden, maar wordt hier niet als 2S-pakket geladen."],
     ]
     y = draw_table(c, ["Aansluiting", "Spanning", "Gebruik"], rows, M, y, [100, 125, W - 2 * M - 225], font_size=7.5)
@@ -777,7 +783,7 @@ def page_6(c: canvas.Canvas) -> None:
         c,
         "Geen instellingen op het scherm",
         "Wifi-naam, wifi-wachtwoord, batterijadres en API-token worden vóór het uploaden in een privéconfiguratie gezet. "
-        "Je voert ze niet op de M5Dial zelf in. Zie pagina 16.",
+        "Je voert ze niet op de M5Dial zelf in. Dit staat stap voor stap in de afzonderlijke installateurshandleiding.",
         M,
         y,
         W - 2 * M,
@@ -1027,8 +1033,8 @@ def page_14(c: canvas.Canvas) -> None:
 
 
 def page_15(c: canvas.Canvas) -> None:
-    y = section_title(c, "Voeding", "Accu en energieverbruik", 15)
-    y = paragraph(c, "De huidige firmware is ingesteld op goed leesbaar gebruik, niet op maximale accuduur. Het scherm staat actief op helderheid 230, dimt na 2 minuten naar 55 en schakelt niet automatisch volledig uit. Wifi wordt wel na iedere API-call uitgezet.", M, y, W - 2 * M, size=9.4, leading=13.3)
+    y = section_title(c, "M5Dial", "Voeding van de M5Dial", 15)
+    y = paragraph(c, "Dit hoofdstuk gaat uitsluitend over de voeding van de M5Dial-afstandsbediening, niet over de grote Sonnenbatterie. In dit apparaat is een 3,7 V / 500 mAh 1S-lithiumaccu ingebouwd. De firmware is ingesteld op goed leesbaar gebruik, niet op maximale accuduur: het scherm staat actief op helderheid 230, dimt na 2 minuten naar 55 en schakelt niet automatisch volledig uit. Wifi wordt na iedere API-call uitgezet.", M, y, W - 2 * M, size=9.0, leading=12.7)
     y -= 12
     # Battery capacity illustration.
     x = M
@@ -1041,25 +1047,155 @@ def page_15(c: canvas.Canvas) -> None:
     c.roundRect(x + 7, y - bh + 7, bw * 0.72, bh - 14, 5, fill=1, stroke=0)
     c.setFillColor(DARK)
     c.setFont("DV-Bold", 15)
-    c.drawCentredString(x + bw / 2, y - 42, "3,7 V x 2000 mAh")
+    c.drawCentredString(x + bw / 2, y - 42, "3,7 V x 500 mAh")
     c.setFont("DV-Bold", 10)
-    c.drawCentredString(x + bw / 2, y - 61, "ongeveer 7,4 Wh")
+    c.drawCentredString(x + bw / 2, y - 61, "ongeveer 1,85 Wh")
     bx = 310
-    callout(c, "Ordegrootte, geen garantie", "M5Stack noemt bij de groene ingang ongeveer 0,84 tot 1,01 W tijdens bedrijf, afhankelijk van de voedingsspanning. 7,4 Wh gedeeld door circa 0,8 tot 1,0 W geeft theoretisch ongeveer 7 tot 9 uur vóór omzettingsverliezen. Dimmen kan dit verlengen; acculeeftijd en bedrading kunnen het verkorten.", bx, y, W - M - bx, fill=PALE_BLUE, accent=BLUE, body_size=7.7)
+    callout(c, "Ordegrootte, geen garantie", "M5Stack noemt tijdens bedrijf ongeveer 0,84 tot 1,01 W, afhankelijk van de voedingswijze. 1,85 Wh gedeeld door 0,84 tot 1,01 W geeft theoretisch ongeveer 1,8 tot 2,2 uur vóór omzettingsverliezen. Reken praktisch op circa 1,5 tot 2 uur en meet het eigen apparaat; dimmen kan helpen, terwijl wifi, acculeeftijd en bedrading de duur beïnvloeden.", bx, y, W - M - bx, fill=PALE_BLUE, accent=BLUE, body_size=7.55)
     y -= 122
     rows = [
-        ["3,7 V / 2000 mAh 1S", "ca. 7,4 Wh", "Witte accuconnector; denk in uren, niet in weken."],
-        ["7,4 V / 2000 mAh 2S", "ca. 14,8 Wh", "Alleen groene ingang, met BMS; theoretisch ongeveer tweemaal de energie."],
+        ["Ingebouwd: 3,7 V / 500 mAh 1S", "ca. 1,85 Wh", "Witte accuconnector; praktisch circa 1,5 tot 2 uur."],
         ["USB-C 5 V", "Netvoeding", "Beste keuze voor permanent zichtbaar gebruik."],
+        ["Groene ingang 6-36 V", "Externe bron", "Alleen door een deskundige aansluiten; zie installateurshandleiding."],
     ]
     y = draw_table(c, ["Voorbeeld", "Energie", "Praktische betekenis"], rows, M, y, [150, 90, W - 2 * M - 240], font_size=7.8)
     label(c, "Accuveiligheid", M, y - 2, color=RED)
-    y = bullets(c, ["Gebruik geen bolle, beschadigde, warme of lekkende lithiumaccu.", "Controleer connectorformaat én polariteit met documentatie of multimeter; kleur alleen is geen garantie.", "Een 2S-pakket op de groene ingang heeft een eigen 2S-BMS en geschikte 2S-lader nodig. De groene ingang is geen 2S-lader.", "Zorg voor zekering, trekontlasting en bescherming tegen kortsluiting in de behuizing.", "Laad niet onbeheerd en volg de instructies van accufabrikant, lader en M5Stack.", "De officiële slaapstroom van 1,9 µA geldt alleen bij echte power-off/slaap. Die functie staat in deze firmware uit."], M, y - 20, W - 2 * M, size=8.3, leading=11.4, gap=3, dot=RED)
+    y = bullets(c, ["Gebruik geen bolle, beschadigde, warme of lekkende lithiumaccu.", "Controleer connectorformaat én polariteit met documentatie of multimeter; kleur alleen is geen garantie.", "Gebruik voor de witte aansluiting uitsluitend een passende 3,7 V 1S-accu; sluit hier nooit 7,4 V op aan.", "Zorg voor trekontlasting en bescherming tegen kortsluiting in de behuizing.", "Laad niet onbeheerd en volg de instructies van accufabrikant, lader en M5Stack.", "De officiële slaapstroom van 1,9 µA geldt alleen bij echte power-off/slaap. Die functie staat in deze firmware uit."], M, y - 20, W - 2 * M, size=8.3, leading=11.4, gap=3, dot=RED)
     c.showPage()
 
 
-def page_16(c: canvas.Canvas) -> None:
-    y = section_title(c, "Configuratie", "Wifi en Sonnen API instellen", 16)
+def installer_cover(c: canvas.Canvas) -> None:
+    c.setFillColor(DARK)
+    c.rect(0, 0, W, H, fill=1, stroke=0)
+    cover_image(c, CASE_PHOTO, 0, 320, W, H - 320)
+    c.saveState()
+    c.setFillAlpha(0.76)
+    c.setFillColor(DARK)
+    c.rect(0, 320, W, 88, fill=1, stroke=0)
+    c.restoreState()
+    c.setFillColor(BLUE)
+    c.rect(0, 0, 10, 320, fill=1, stroke=0)
+    c.setFillColor(GREEN)
+    c.setFont("DV-Bold", 8)
+    c.drawString(48, 283, "INSTALLATEURSHANDLEIDING")
+    c.setFillColor(white)
+    c.setFont("DV-Bold", 25)
+    c.drawString(48, 239, "M5Dial Sonnenbatterie-")
+    c.drawString(48, 204, "afstandsbediening")
+    c.setFont("DV", 11)
+    c.setFillColor(HexColor("#C9D3D2"))
+    c.drawString(48, 164, "Installeren, configureren, testen, onderhouden en veilig opleveren")
+    c.setFillColor(PANEL)
+    c.roundRect(48, 103, 230, 34, 7, fill=1, stroke=0)
+    c.setFillColor(white)
+    c.setFont("DV-Bold", 8.5)
+    c.drawString(62, 116, "Versie 1.0  |  3 augustus 2026")
+    c.setFillColor(HexColor("#8FA0A4"))
+    c.setFont("DV", 7.2)
+    c.drawString(48, 63, "Voor firmwarecommit 50f31c3 en de huidige apparaatconfiguratie")
+    c.drawString(48, 48, "Bevat geen wifi-wachtwoord, API-token of ander geheim")
+    c.showPage()
+
+
+def installer_page_2(c: canvas.Canvas) -> None:
+    y = section_title(c, "Start", "Doel en veiligheidsgrenzen", 2, document_name="Installateurshandleiding")
+    y = paragraph(
+        c,
+        "Deze handleiding is bedoeld voor degene die de M5Dial-afstandsbediening assembleert, configureert, "
+        "programmeert en overdraagt aan de gebruiker. Zij vult de gebruikershandleiding aan. Werk systematisch: "
+        "eerst voeding en alleen-lezen, daarna pas een lage schrijftest.",
+        M,
+        y,
+        W - 2 * M,
+        size=9.6,
+        leading=13.6,
+    )
+    y -= 10
+    y = callout(
+        c,
+        "Werkgrens",
+        "Deze handleiding gaat over de M5Dial en de lokale Sonnen API. Open of wijzig de Sonnenbatterie, "
+        "netspanningsinstallatie of vaste batterijbekabeling niet. Laat dat uitsluitend uitvoeren door een "
+        "daarvoor erkende installateur en volg altijd de actuele documentatie van de fabrikant.",
+        M,
+        y,
+        W - 2 * M,
+        fill=PALE_RED,
+        accent=RED,
+        body_size=8.8,
+    )
+    label(c, "Benodigd vóór de start", M, y - 3, color=GREEN)
+    y = bullets(
+        c,
+        [
+            "M5Stack Dial, USB-C-datakabel en betrouwbare 5 V voeding.",
+            "Computer met deze repository en Arduino IDE 2 op de standaardlocatie.",
+            "Een vertrouwd 2,4 GHz-netwerk waarop de M5Dial de Sonnenbatterie lokaal kan bereiken.",
+            "Lokaal batterijadres en API-token, uitsluitend opgeslagen in sonnen_config.h.",
+            "Toegang tot het officiële Sonnen-dashboard om AUTO zo nodig onafhankelijk te herstellen.",
+        ],
+        M,
+        y - 20,
+        W - 2 * M,
+        size=8.5,
+        leading=11.5,
+        gap=3,
+    )
+    y -= 4
+    label(c, "Inhoud", M, y, color=BLUE)
+    contents = [
+        ("Hardware en voeding", "3"),
+        ("Wifi en Sonnen API instellen", "4"),
+        ("Firmware installeren en uploaden", "5"),
+        ("Inbedrijfstelling en functionele test", "6"),
+        ("Onderhoud en technische gegevens", "7"),
+        ("Oplevering, herstel en bronnen", "8"),
+    ]
+    ty = y - 23
+    for i, (name, number) in enumerate(contents):
+        col = i % 2
+        row = i // 2
+        x = M + col * 255
+        yy = ty - row * 38
+        c.setFillColor(white)
+        c.setStrokeColor(LINE)
+        c.roundRect(x, yy - 22, 238, 28, 4, fill=1, stroke=1)
+        c.setFont("DV", 7.7)
+        c.setFillColor(INK)
+        c.drawString(x + 9, yy - 11, name)
+        c.setFont("DV-Bold", 8)
+        c.setFillColor(BLUE)
+        c.drawRightString(x + 228, yy - 11, number)
+    c.showPage()
+
+
+def installer_page_3(c: canvas.Canvas) -> None:
+    y = section_title(c, "Hardware", "Hardware en voeding", 3, document_name="Installateurshandleiding")
+    y = paragraph(c, "De huidige afstandsbediening bevat een 3,7 V / 500 mAh 1S-lithiumaccu op de witte accuconnector. Gebruik USB-C voor de eerste ingebruikname en voor iedere firmware-upload. Controleer bij losse bedrading altijd spanning, polariteit, isolatie en trekontlasting voordat de voeding wordt ingeschakeld.", M, y, W - 2 * M, size=9.2, leading=13.1)
+    y -= 10
+    y = draw_power_diagram(c, M, y, W - 2 * M)
+    rows = [
+        ["USB-C", "5 V DC", "Eerste keuze voor uploaden, testen en permanent gebruik."],
+        ["Witte accuplug", "3,7 V 1S / 500 mAh", "Ingebouwde M5Dial-accu; 1,25 mm 2-polig, polariteit controleren."],
+        ["Groene klem", "6-36 V DC", "Externe voeding; + en - exact volgen. Geen laaduitgang voor een 2S-pakket."],
+    ]
+    y = draw_table(c, ["Aansluiting", "Spanning", "Installatie-eis"], rows, M, y, [100, 130, W - 2 * M - 230], font_size=7.35)
+    y -= 4
+    photo_w, photo_h = 142, 190
+    contain_image(c, CASE_PHOTO, M, y - photo_h, photo_w, photo_h)
+    c.setFillColor(MUTED)
+    c.setFont("DV-Italic", 6.2)
+    c.drawString(M, y - photo_h - 12, "Voorbeeldbehuizing.")
+    c.drawString(M, y - photo_h - 22, "Geen elektrisch schema.")
+    bx = M + photo_w + 18
+    callout(c, "Witte aansluiting", "Sluit hier uitsluitend een 3,7 V 1S-accu met passende stekker en juiste polariteit aan. De ingebouwde capaciteit is 500 mAh, ongeveer 1,85 Wh. Sluit nooit een 7,4 V 2S-pakket op deze aansluiting aan.", bx, y, W - M - bx, fill=PALE_GREEN, accent=GREEN, body_size=8.0)
+    callout(c, "Groene aansluiting", "Een 2S/7,4 V pakket mag alleen op de groene 6-36 V ingang en heeft een eigen 2S-BMS, zekering en geschikte 2S-lader nodig. De groene ingang voedt de M5Dial, maar laadt het 2S-pakket niet.", bx, y - 116, W - M - bx, fill=PALE_ORANGE, accent=ORANGE, body_size=8.0)
+    callout(c, "Laatste controle", "Gebruik één voedingsbron tegelijk tijdens de eerste test. Controleer dat geen draad kan klemmen tegen de encoder, USB-C-poort of scherpe delen van de behuizing.", bx, y - 232, W - M - bx, fill=PALE_BLUE, accent=BLUE, body_size=8.0)
+    c.showPage()
+
+
+def installer_page_4(c: canvas.Canvas) -> None:
+    y = section_title(c, "Configuratie", "Wifi en Sonnen API instellen", 4, document_name="Installateurshandleiding")
     y = paragraph(c, "Deze pagina is alleen nodig bij een nieuwe batterij, router, wifi-naam of API-token. De instellingen worden in sonnen_config.h gezet en daarna samen met de firmware geüpload.", M, y, W - 2 * M, size=9.4, leading=13.3)
     y -= 10
     y = callout(c, "API-token invoeren", "De token wordt op de computer ingevuld vóór het uploaden, niet op het ronde scherm. Bij veel systemen staat hij in het lokale Sonnen-dashboard onder Software-Integration. Ontbreekt die optie, vraag de installateur of Sonnen-support naar lokale API-toegang voor jouw model en softwareversie.", M, y, W - 2 * M, fill=PALE_BLUE, accent=BLUE, body_size=8.7)
@@ -1087,8 +1223,8 @@ def page_16(c: canvas.Canvas) -> None:
     c.showPage()
 
 
-def page_17(c: canvas.Canvas) -> None:
-    y = section_title(c, "Firmware", "Installeren, uploaden en herstellen", 17)
+def installer_page_5(c: canvas.Canvas) -> None:
+    y = section_title(c, "Firmware", "Installeren en uploaden", 5, document_name="Installateurshandleiding")
     y = paragraph(c, "Voor de meegeleverde scripts is op macOS Arduino IDE 2 nodig op de standaardlocatie. Installeer daarnaast het ESP32-boardpakket van Espressif Systems en de M5Dial-library. Het bord heet M5Stack Dial; de technische bordcode is esp32:esp32:m5stack_dial.", M, y, W - 2 * M, size=9.1, leading=12.9)
     y -= 10
     label(c, "Bouwen en uploaden", M, y, color=GREEN)
@@ -1113,8 +1249,44 @@ def page_17(c: canvas.Canvas) -> None:
     c.showPage()
 
 
-def page_18(c: canvas.Canvas) -> None:
-    y = section_title(c, "Beheer", "Onderhoud en technische gegevens", 18)
+def installer_page_6(c: canvas.Canvas) -> None:
+    y = section_title(c, "Test", "Inbedrijfstelling en functionele test", 6, document_name="Installateurshandleiding")
+    y = callout(
+        c,
+        "Begin zonder schrijftoegang",
+        "Laat SONNEN_ALLOW_WRITES eerst op 0. Controleer via STATUS dat SOC, PV, USE, GRID, BAT en Mode "
+        "plausibel zijn. Schakel schrijftoegang pas in nadat de alleen-lezen test volledig is geslaagd.",
+        M,
+        y,
+        W - 2 * M,
+        fill=PALE_BLUE,
+        accent=BLUE,
+        body_size=8.8,
+    )
+    steps = [
+        ("Leg de uitgangssituatie vast", "Noteer SOC, Mode en BAT. Controleer dezelfde waarden in het officiële Sonnen-dashboard."),
+        ("Test STATUS", "Kies STATUS en druk kort. De waarden moeten binnen ongeveer 5 tot 15 seconden actueel worden."),
+        ("Test laden met 100 W", "Kies CHARGE, stel 100 W in en bevestig. Wacht 5 tot 10 seconden; verwacht Mode 1 en BAT ongeveer +100 W."),
+        ("Herstel AUTO", "Kies AUTO en bevestig. Wacht opnieuw en controleer dat boven in het scherm Mode 2 verschijnt."),
+        ("Test ontladen met 100 W", "Kies DISCH, stel 100 W in en bevestig. Verwacht Mode 1 en BAT ongeveer -100 W, voor zover de batterij dit toestaat."),
+        ("Eindig opnieuw met AUTO", "Bevestig AUTO, controleer Mode 2 en vergelijk het normale gedrag met het Sonnen-dashboard."),
+    ]
+    y = numbered_steps(c, steps, M, y, W - 2 * M, size=8.1, gap=6)
+    label(c, "Acceptatiepunten", M, y - 1, color=GREEN)
+    rows = [
+        ["Status", "Echt SOC en actuele vermogenswaarden; geen blijvende foutmelding."],
+        ["Laden", "Mode 1; BAT positief; reactie na enkele seconden."],
+        ["AUTO na laden", "Mode 2 zichtbaar boven in het scherm."],
+        ["Ontladen", "Mode 1; BAT negatief; reactie na enkele seconden."],
+        ["Eindtoestand", "Mode 2; Sonnenbatterie gedraagt zich weer volgens zelfverbruik."],
+    ]
+    y = draw_table(c, ["Controle", "Geslaagd wanneer"], rows, M, y - 18, [120, W - 2 * M - 120], font_size=7.5, row_pad=4.6)
+    callout(c, "Afwijking of twijfel", "Stop de test, stuur geen reeks nieuwe opdrachten en herstel AUTO via het officiële Sonnen-dashboard. Controleer daarna netwerk, API-token, batterijstatus, reserve, temperatuur en systeemlimieten.", M, y - 3, W - 2 * M, fill=PALE_RED, accent=RED, body_size=8.2)
+    c.showPage()
+
+
+def installer_page_7(c: canvas.Canvas) -> None:
+    y = section_title(c, "Beheer", "Onderhoud en technische gegevens", 7, document_name="Installateurshandleiding")
     label(c, "Onderhoudscheck", M, y, color=GREEN)
     y = bullets(c, ["Na routerwissel: controleer SSID, wachtwoord en het vaste IP-adres van de Sonnenbatterie.", "Na een Sonnen-software-update: test STATUS en controleer Mode, SOC en tekens voordat je schrijft.", "Na firmware-update: voer een 100 W laad- en ontlaadtest uit en eindig met AUTO.", "Controleer accu, connectoren, schakelaar en behuizing regelmatig op warmte, slijtage en losse bedrading.", "Bewaar een versleutelde privéback-up van sonnen_config.h; de openbare GitHub-repository bevat dit bestand niet."], M, y - 20, W - 2 * M, size=8.6, leading=11.8, gap=3)
     y -= 4
@@ -1127,6 +1299,7 @@ def page_18(c: canvas.Canvas) -> None:
         ["Actief-drempel", "|BAT| vanaf 100 W"],
         ["Scherm", "Helderheid 230; dim 55 na 120 s"],
         ["Power-off", "Uitgeschakeld; DIM dimt alleen"],
+        ["Ingebouwde accu", "3,7 V / 500 mAh 1S; circa 1,85 Wh"],
         ["Wifi", "2,4 GHz; radio uit na elke request"],
         ["Timeouts", "Wifi 9 s; HTTP 4,5 s"],
     ]
@@ -1144,8 +1317,66 @@ def page_18(c: canvas.Canvas) -> None:
     c.showPage()
 
 
-def page_19(c: canvas.Canvas) -> None:
-    y = section_title(c, "Naslag", "Snelle bedieningskaart", 19)
+def installer_page_8(c: canvas.Canvas) -> None:
+    y = section_title(c, "Oplevering", "Oplevering, herstel en bronnen", 8, document_name="Installateurshandleiding")
+    label(c, "Oplevercheck met de gebruiker", M, y, color=GREEN)
+    y = bullets(
+        c,
+        [
+            "Laat STATUS zien en vergelijk SOC met het officiële Sonnen-dashboard.",
+            "Laat CHARGE en DISCH alleen zien als schrijftoegang bewust is ingeschakeld.",
+            "Demonstreer dat AUTO de batterij terugzet in Mode 2 en wijs Mode 2 boven in het scherm aan.",
+            "Leg uit dat de ingebouwde M5Dial-accu 500 mAh is en praktisch circa 1,5 tot 2 uur meegaat.",
+            "Overhandig de gebruikershandleiding en spreek af wie configuratie- en firmwarewijzigingen beheert.",
+        ],
+        M,
+        y - 20,
+        W - 2 * M,
+        size=8.5,
+        leading=11.6,
+        gap=3,
+    )
+    y -= 3
+    y = callout(c, "Privégegevens", "Bewaar wifi-naam, wachtwoord, lokaal batterijadres en API-token alleen in een beveiligde privéback-up van sonnen_config.h. Zet deze gegevens nooit in Git, GitHub, screenshots, de PDF of een openbaar servicerapport.", M, y, W - 2 * M, fill=PALE_RED, accent=RED, body_size=8.5)
+    label(c, "Snelle herstelkaart", M, y - 2, color=ORANGE)
+    rows = [
+        ["Zwart scherm", "Voeding en kabel controleren; USB 5 seconden los; opnieuw aansluiten."],
+        ["Wifi timeout", "2,4 GHz, SSID, wachtwoord, bereik en gastnetwerkisolatie controleren."],
+        ["HTTP 401 / 403", "API-token en lokale API-rechten controleren."],
+        ["Geen actuele status", "Lokaal batterijadres en netwerkroute testen met sonnen-probe status."],
+        ["Schrijfopdracht faalt", "Niet herhalen; AUTO via officieel dashboard; batterijlimieten controleren."],
+        ["Verkeerd gedrag", "STATUS, daarna AUTO; Mode 2 controleren; zo nodig firmware opnieuw uploaden."],
+    ]
+    y = draw_table(c, ["Probleem", "Eerste actie"], rows, M, y - 18, [125, W - 2 * M - 125], font_size=7.25, row_pad=4.6)
+    label(c, "Bronnen", M, y - 1, color=BLUE)
+    sources = [
+        ("Project en firmware", "github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening", "https://github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening"),
+        ("M5Dial-documentatie", "docs.m5stack.com/en/core/M5Dial", "https://docs.m5stack.com/en/core/M5Dial"),
+        ("Behuizing", "printables.com/model/992288-m5stack-dial-case/files", "https://www.printables.com/model/992288-m5stack-dial-case/files"),
+        ("Sonnen release notes", "sonnen.de/rln-sb", "https://www.sonnen.de/rln-sb"),
+    ]
+    source_y = y - 21
+    for i, (title, display, url) in enumerate(sources):
+        yy = source_y - i * 35
+        c.setFillColor(white)
+        c.setStrokeColor(LINE)
+        c.roundRect(M, yy - 24, 350, 28, 5, fill=1, stroke=1)
+        c.setFont("DV-Bold", 7.2)
+        c.setFillColor(INK)
+        c.drawString(M + 9, yy - 8, title)
+        c.setFont("DV", 6.1)
+        c.setFillColor(BLUE)
+        c.drawString(M + 9, yy - 18, display)
+        c.linkURL(url, (M, yy - 24, M + 350, yy + 4), relative=0)
+    draw_qr(c, sources[0][2], W - M - 96, source_y - 82, 92)
+    c.setFont("DV", 6.3)
+    c.setFillColor(MUTED)
+    c.drawCentredString(W - M - 50, source_y - 95, "QR: GitHub-repository")
+    c.showPage()
+
+
+def user_page_16(c: canvas.Canvas) -> None:
+    y = section_title(c, "Naslag", "Snelle bedieningskaart", 16)
     c.setFillColor(DARK)
     c.roundRect(M, y - 178, W - 2 * M, 178, 10, fill=1, stroke=0)
     c.setFillColor(GREEN)
@@ -1157,7 +1388,7 @@ def page_19(c: canvas.Canvas) -> None:
         "Lang drukken (1,2 s): annuleren of dimmen",
         "CHARGE: eerste druk kiest wattage, tweede druk verzendt",
         "DISCH: eerste druk kiest wattage, tweede druk verzendt",
-        "Na handmatig gebruik: altijd AUTO kiezen en één keer drukken",
+        "Na handmatig gebruik: AUTO kiezen, drukken en bovenin Mode 2 controleren",
     ]
     bullets(c, quick, M + 16, y - 52, W - 2 * M - 32, size=8.7, leading=11.5, gap=2.5, color=white, dot=GREEN)
     y -= 198
@@ -1184,6 +1415,7 @@ def page_19(c: canvas.Canvas) -> None:
     source_y = y - 20
     sources = [
         ("Project en firmware", "github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening", "https://github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening"),
+        ("Installateurshandleiding", "GitHub: docs/gebruikershandleiding/installateurshandleiding", "https://github.com/Tallestxxl/M5Dial-Sonnenbatterie-afstandsbediening/blob/main/docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.0.pdf"),
         ("Officiële M5Dial-documentatie", "docs.m5stack.com/en/core/M5Dial", "https://docs.m5stack.com/en/core/M5Dial"),
         ("3D-behuizing", "printables.com/model/992288-m5stack-dial-case/files", "https://www.printables.com/model/992288-m5stack-dial-case/files"),
         ("Sonnen release notes", "sonnen.de/rln-sb", "https://www.sonnen.de/rln-sb"),
@@ -1210,42 +1442,79 @@ def page_19(c: canvas.Canvas) -> None:
     c.showPage()
 
 
-def build() -> None:
-    register_fonts()
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    fd, temporary_name = tempfile.mkstemp(prefix="manual-", suffix=".pdf", dir=OUT.parent)
+def write_pdf(
+    output: Path,
+    *,
+    title: str,
+    subject: str,
+    pages: list,
+) -> None:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary_name = tempfile.mkstemp(prefix="manual-", suffix=".pdf", dir=output.parent)
     os.close(fd)
     temporary = Path(temporary_name)
-    c = canvas.Canvas(str(temporary), pagesize=A4, pageCompression=1, invariant=1)
-    c.setTitle("M5Dial Sonnenbatterie-afstandsbediening - Gebruikershandleiding")
-    c.setAuthor("M5Dial Sonnenbatterie project")
-    c.setSubject("Volledige gebruikershandleiding voor de M5Dial Sonnenbatterie-afstandsbediening")
-    c.setKeywords("M5Dial, Sonnenbatterie, afstandsbediening, gebruikershandleiding, ESP32")
-    cover(c)
-    page_2(c)
-    page_3(c)
-    page_4(c)
-    page_5(c)
-    page_6(c)
-    page_7(c)
-    page_8(c)
-    page_9(c)
-    page_10(c)
-    page_11(c)
-    page_12(c)
-    page_13(c)
-    page_14(c)
-    page_15(c)
-    page_16(c)
-    page_17(c)
-    page_18(c)
-    page_19(c)
-    c.save()
-    if OUT.exists() and filecmp.cmp(temporary, OUT, shallow=False):
-        temporary.unlink()
-    else:
-        os.replace(temporary, OUT)
-    print(OUT)
+    try:
+        c = canvas.Canvas(str(temporary), pagesize=A4, pageCompression=1, invariant=1)
+        c.setTitle(title)
+        c.setAuthor("M5Dial Sonnenbatterie project")
+        c.setSubject(subject)
+        c.setKeywords("M5Dial, Sonnenbatterie, afstandsbediening, handleiding, ESP32")
+        for draw_page in pages:
+            draw_page(c)
+        c.save()
+        if output.exists() and filecmp.cmp(temporary, output, shallow=False):
+            temporary.unlink()
+        else:
+            os.replace(temporary, output)
+    except Exception:
+        try:
+            temporary.unlink(missing_ok=True)
+        except OSError:
+            pass
+        raise
+    print(output)
+
+
+def build() -> None:
+    register_fonts()
+    write_pdf(
+        INSTALLER_OUT,
+        title="M5Dial Sonnenbatterie-afstandsbediening - Installateurshandleiding",
+        subject="Installatie, configuratie, test en onderhoud van de M5Dial Sonnenbatterie-afstandsbediening",
+        pages=[
+            installer_cover,
+            installer_page_2,
+            installer_page_3,
+            installer_page_4,
+            installer_page_5,
+            installer_page_6,
+            installer_page_7,
+            installer_page_8,
+        ],
+    )
+    write_pdf(
+        USER_OUT,
+        title="M5Dial Sonnenbatterie-afstandsbediening - Gebruikershandleiding",
+        subject="Gebruikershandleiding voor de M5Dial Sonnenbatterie-afstandsbediening",
+        pages=[
+            cover,
+            page_2,
+            page_3,
+            page_4,
+            page_5,
+            page_6,
+            page_7,
+            page_8,
+            page_9,
+            page_10,
+            page_11,
+            page_12,
+            page_13,
+            page_14,
+            page_15,
+            user_page_16,
+        ],
+    )
 
 
 if __name__ == "__main__":

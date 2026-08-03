@@ -18,7 +18,7 @@ Deze repository bevat firmware, hulpmiddelen en hardwarebestanden voor een compa
 - adaptieve refresh: sneller bij actief laden/ontladen, rustiger bij weinig batterijvermogen
 - automatische terugval naar veilige configuratiebestanden zonder secrets
 - testscript voor end-to-end controle van laden, ontladen en terug naar auto
-- volledige geïllustreerde gebruikershandleiding als PDF
+- volledige geïllustreerde gebruikershandleiding en installateurshandleiding als PDF
 
 ## Veiligheid
 
@@ -137,10 +137,11 @@ Controleer de actuele licentievoorwaarden op Printables voordat je de STL-bestan
 
 ## Documentatie
 
-- [Gebruikershandleiding (PDF)](docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-actueel.pdf)
+- [Gebruikershandleiding v1.1 (PDF)](docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-versie-1.1.pdf)
+- [Installateurshandleiding v1.0 (PDF)](docs/gebruikershandleiding/M5Dial-Sonnenbatterie-installateurshandleiding-versie-1.0.pdf)
 - [Handleidingbron en bouwinstructies](docs/gebruikershandleiding/README.md)
 - [Firmware README](arduino/sketchbook/SonnenDialRemote/README.md)
 - [Hardware checklist](docs/sonnen-dial-hardware.md)
 - [Casebestanden](hardware/case/README.md)
 
-Bij iedere gebruikersgerichte firmwarewijziging wordt ook de handleidingbron beoordeeld en de PDF opnieuw gebouwd met `scripts/build-manual`. GitHub Actions controleert dat de vastgelegde PDF overeenkomt met de bron en dat firmwarewijzigingen niet zonder documentatiereview worden gepubliceerd.
+Bij iedere gebruikersgerichte of installatietechnische firmwarewijziging wordt ook de handleidingbron beoordeeld en worden beide PDF's opnieuw gebouwd met `scripts/build-manual`. GitHub Actions controleert dat de vastgelegde PDF's overeenkomen met de bron en dat firmwarewijzigingen niet zonder documentatiereview worden gepubliceerd.
