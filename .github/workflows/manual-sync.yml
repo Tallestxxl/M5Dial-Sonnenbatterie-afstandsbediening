@@ -1,0 +1,65 @@
+name: Manual sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "arduino/sketchbook/SonnenDialRemote/**"
+      - "docs/gebruikershandleiding/**"
+      - "docs/images/m5dial-remote-status-photo.jpg"
+      - "hardware/case/m5stack-dial-case-preview.webp"
+      - "scripts/build-manual"
+      - ".github/workflows/manual-sync.yml"
+  pull_request:
+    paths:
+      - "arduino/sketchbook/SonnenDialRemote/**"
+      - "docs/gebruikershandleiding/**"
+      - "docs/images/m5dial-remote-status-photo.jpg"
+      - "hardware/case/m5stack-dial-case-preview.webp"
+      - "scripts/build-manual"
+      - ".github/workflows/manual-sync.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-manual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: docs/gebruikershandleiding/requirements.txt
+
+      - name: Install PDF dependencies
+        run: python -m pip install -r docs/gebruikershandleiding/requirements.txt
+
+      - name: Rebuild manual
+        run: scripts/build-manual
+
+      - name: Verify generated PDF is current
+        run: git diff --exit-code -- docs/gebruikershandleiding/M5Dial-Sonnenbatterie-gebruikershandleiding-actueel.pdf
+
+      - name: Require manual review for firmware changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${BASE_SHA}" || "${BASE_SHA}" =~ ^0+$ ]]; then
+            exit 0
+          fi
+
+          changed="$(git diff --name-only "${BASE_SHA}" "${GITHUB_SHA}")"
+          if printf '%s\n' "${changed}" | grep -q '^arduino/sketchbook/SonnenDialRemote/'; then
+            if ! printf '%s\n' "${changed}" | grep -q '^docs/gebruikershandleiding/build_manual.py$'; then
+              echo "Firmware changed without a review of build_manual.py."
+              echo "Update the manual source and run scripts/build-manual."
+              exit 1
+            fi
+          fi

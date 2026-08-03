@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+
+ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)"
+PYTHON="${PYTHON:-python3}"
+
+"$PYTHON" "$ROOT_DIR/docs/gebruikershandleiding/build_manual.py"
